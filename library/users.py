@@ -1,5 +1,4 @@
-from v2_api_client.library import BaseAPIClient
-
+from library import BaseAPIClient
 
 class UsersAPIClient(BaseAPIClient):
     def login(self, email, password, invitation_code=None, **kwargs):

@@ -1,5 +1,4 @@
-from .library import APIClient
-
+from client import APIClient
 
 class APIClientMixin:
     @property

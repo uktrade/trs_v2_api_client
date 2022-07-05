@@ -1,8 +1,7 @@
 from apiclient import APIClient, HeaderAuthentication, JsonResponseHandler
 from django.conf import settings
 
-from v2_api_client.error_handling import APIErrorHandler
-
+from error_handling import APIErrorHandler
 
 class BaseAPIClient(APIClient):
     def __init__(
