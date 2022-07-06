@@ -6,7 +6,6 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='v2-api-client',
-    version=__version__,
     packages=find_packages(),
     include_package_data=True,
     license='MIT',
