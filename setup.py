@@ -1,7 +1,5 @@
 import os
 from setuptools import find_packages, setup
-from trade_remedies_client import __author__, __email__
-from trade_remedies_client.version import __version__
 
 # allow setup.py to be run from any path
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
@@ -13,9 +11,7 @@ setup(
     include_package_data=True,
     license='MIT',
     description='An API client for V2 of the Trade Remedies API',
-    url='https://github.com/uktrade/trade-remedies-client',
-    author=__author__,
-    author_email=__email__,
+    url='https://github.com/uktrade/trs_v2_api_client',
     classifiers=[
         'Environment :: Web Environment',
         'Framework :: Django',
@@ -24,11 +20,12 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.9',
     ],
     install_requires=[
         'django',
         'requests',
+        'api-client',
         'django-cache-memoize',
     ]
 )
