@@ -1,7 +1,8 @@
 from apiclient import APIClient, HeaderAuthentication, JsonResponseHandler
 from django.conf import settings
 
-from error_handling import APIErrorHandler
+from v2_api_client.error_handling import APIErrorHandler
+
 
 class BaseAPIClient(APIClient):
     def __init__(
@@ -11,9 +12,10 @@ class BaseAPIClient(APIClient):
             **kwargs
     ):
         authentication_method = HeaderAuthentication(
-            token=kwargs.get("token") or settings.HEALTH_CHECK_TOKEN,
+            token=kwargs.pop("token", settings.HEALTH_CHECK_TOKEN),
             parameter="Authorization",
-            scheme="Token"
+            scheme="Token",
+            extra={"X-Origin-Environment": settings.ENVIRONMENT_KEY}
         )
         super().__init__(
             authentication_method=authentication_method,
@@ -23,5 +25,16 @@ class BaseAPIClient(APIClient):
         )
 
     @staticmethod
-    def url(path):
-        return f"{settings.API_BASE_URL}/api/v2/{path}"
+    def url(path, **kwargs):
+        url = f"{settings.API_BASE_URL}/api/v2/{path}/"
+        if kwargs:
+            added = False
+            for parameter, value in kwargs.items():
+                if value:
+                    if added:
+                        delimiter = "&"
+                    else:
+                        delimiter = "?"
+                    url += f"{delimiter}{parameter}={value}"
+                    added = True
+        return url

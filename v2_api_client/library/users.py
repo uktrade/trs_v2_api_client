@@ -9,3 +9,6 @@ class UsersAPIClient(BaseAPIClient):
             "invitation_code": invitation_code,
             **kwargs
         })
+
+    def create_contact(self):
+        pass
