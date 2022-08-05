@@ -1,9 +1,10 @@
-from v2_api_client.library import (submissions, users, cases)
+from v2_api_client.library import (submissions, users, cases, documents)
 
 
 class APIClient(
     users.UsersAPIClient,
     submissions.SubmissionsAPIClient,
-    cases.CasesAPIClient
+    cases.CasesAPIClient,
+    documents.DocumentsAPIClient
 ):
     pass

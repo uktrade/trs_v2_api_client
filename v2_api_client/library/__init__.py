@@ -11,6 +11,7 @@ class BaseAPIClient(APIClient):
             error_handler=APIErrorHandler,
             **kwargs
     ):
+        self.timeout = kwargs.pop("timeout", None)
         authentication_method = HeaderAuthentication(
             token=kwargs.pop("token", settings.HEALTH_CHECK_TOKEN),
             parameter="Authorization",
@@ -38,3 +39,9 @@ class BaseAPIClient(APIClient):
                     url += f"{delimiter}{parameter}={value}"
                     added = True
         return url
+
+    def get_request_timeout(self) -> float:
+        """Return the number of seconds before the request times out."""
+        if self.timeout:
+            return float(self.timeout)
+        return 10.0
