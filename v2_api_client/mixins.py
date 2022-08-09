@@ -1,21 +1,21 @@
-from v2_api_client.client import APIClient
+from v2_api_client.client import TRSAPIClient
 
 
 class APIClientMixin:
     @property
-    def client(self, *args, **kwargs) -> APIClient:
+    def client(self, *args, **kwargs) -> TRSAPIClient:
         """
         Return an instance of APIClient loaded with the user's token if they are logged in.
         """
         if hasattr(self.request, "user") and self.request.user.is_authenticated:
             kwargs.setdefault("token", self.request.user.token)
-        return APIClient(*args, **kwargs)
+        return TRSAPIClient(*args, **kwargs)
 
-    def call_client(self, *args, **kwargs) -> APIClient:
+    def call_client(self, *args, **kwargs) -> TRSAPIClient:
         """
         Return an instance of APIClient loaded with the user's token if they are logged in. Can
         accept arguments passed.
         """
         if hasattr(self.request, "user") and self.request.user.is_authenticated:
             kwargs.setdefault("token", self.request.user.token)
-        return APIClient(*args, **kwargs)
+        return TRSAPIClient(*args, **kwargs)

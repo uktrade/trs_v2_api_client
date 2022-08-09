@@ -2,6 +2,8 @@ from v2_api_client.library import BaseAPIClient
 
 
 class SubmissionsAPIClient(BaseAPIClient):
+    base_endpoint = "submissions"
+
     def get_submissions(self, submission_type=None):
         return self.get(self.url("submissions", submission_type=submission_type))
 

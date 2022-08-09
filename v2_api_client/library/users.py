@@ -2,6 +2,8 @@ from v2_api_client.library import BaseAPIClient
 
 
 class UsersAPIClient(BaseAPIClient):
+    base_endpoint = "users"
+
     def login(self, email, password, invitation_code=None, **kwargs):
         return self.post(self.url("login"), data={
             "email": email,
@@ -9,6 +11,3 @@ class UsersAPIClient(BaseAPIClient):
             "invitation_code": invitation_code,
             **kwargs
         })
-
-    def create_contact(self):
-        pass
