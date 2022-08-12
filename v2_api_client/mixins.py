@@ -2,7 +2,6 @@ from v2_api_client.client import TRSAPIClient
 
 
 class APIClientMixin:
-    @property
     def client(self, *args, **kwargs) -> TRSAPIClient:
         """
         Return an instance of APIClient loaded with the user's token if they are logged in.

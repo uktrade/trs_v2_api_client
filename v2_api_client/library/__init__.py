@@ -51,26 +51,43 @@ class BaseAPIClient(APIClient):
     def get_base_endpoint(self):
         return self.base_endpoint
 
-    def get_retrieve_endpoint(self, id):
-        return f"{self.get_base_endpoint()}/{id}"
+    def get_retrieve_endpoint(self, id: str, *args) -> str:
+        """
+        Gets the retrieve() endpoint for this particular APIClient. Can also take any number of
+        *args which are appended to the URL delimited by forward slashes
+        Parameters
+        ----------
+        id : str - ID of the object in question
+        args : list - list of paths to append to the URL
+
+        Returns
+        -------
+        str
+        """
+        retrieve_url = f"{self.get_base_endpoint()}/{id}"
+        for extra_path in args:
+            retrieve_url += f"/{extra_path}"
+        return retrieve_url
 
     def all(self):
+        return self.get(self.url(self.get_retrieve_endpoint(id)))
         return [
-
+            TRSObject(each) for each in self.get(self.url(self.get_retrieve_endpoint(id)))
         ]
 
-
-        return self.get(self.url(self.get_base_endpoint()))
-
     def retrieve(self, id):
-        return TRSObject(
-            data=self.get(self.url(f"{self.get_retrieve_endpoint(id)}")),
+        return self.get(self.url(self.get_retrieve_endpoint(id)))
+        '''return TRSObject(
+            data=self.get(self.url(self.get_retrieve_endpoint(id))),
             api_client=self
-        )
+        )'''
 
-    def update(self, id, data):
-        return TRSObject(self.post(self.url(f"{self.get_retrieve_endpoint(id)}")))
+    def update(self, object_id, **kwargs):
+        return self.put(self.url(self.get_retrieve_endpoint(object_id)), data=kwargs)
 
+
+    def create(self, **kwargs):
+        return self.post(self.url(self.get_base_endpoint()), data=kwargs)
 
 class TRSObject:
     model_id = None
@@ -88,5 +105,5 @@ class TRSObject:
 
     @property
     def post_data(self):
-        # serialize python attributes to json so it can be sent to API
+        # serialize python attributes to json, so it can be sent to API
         pass
