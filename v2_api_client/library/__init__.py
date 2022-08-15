@@ -85,6 +85,8 @@ class BaseAPIClient(APIClient):
     def update(self, object_id, **kwargs):
         return self.put(self.url(self.get_retrieve_endpoint(object_id)), data=kwargs)
 
+    def delete_object(self, id):
+        return self.delete(self.url(self.get_retrieve_endpoint(id)))
 
     def create(self, **kwargs):
         return self.post(self.url(self.get_base_endpoint()), data=kwargs)
