@@ -26,7 +26,7 @@ class BaseAPIClient(APIClient):
         )
 
     @staticmethod
-    def url(path, **kwargs):
+    def url(path: str, **kwargs) -> str:
         url = f"{settings.API_BASE_URL}/api/v2/{path}/"
         if kwargs:
             added = False
@@ -44,4 +44,4 @@ class BaseAPIClient(APIClient):
         """Return the number of seconds before the request times out."""
         if self.timeout:
             return float(self.timeout)
-        return 10.0
+        return 20.0
