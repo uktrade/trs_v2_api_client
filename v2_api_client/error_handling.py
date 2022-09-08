@@ -1,6 +1,7 @@
 from apiclient import exceptions
 from apiclient.error_handlers import BaseErrorHandler
 from apiclient.response import Response
+from json import JSONDecodeError
 
 
 class APIErrorHandler(BaseErrorHandler):
@@ -10,6 +11,9 @@ class APIErrorHandler(BaseErrorHandler):
         """Parses client errors to extract bad request reasons."""
         if 400 <= response.get_status_code() < 500:
             response = response.get_original()
-            return exceptions.ClientError(response.json(), status_code=response.status_code)
+            try:
+                return exceptions.ClientError(response.json(), status_code=response.status_code)
+            except JSONDecodeError:
+                return exceptions.ClientError(response.reason, status_code=response.status_code)
 
         return exceptions.APIRequestError("something went wrong")
