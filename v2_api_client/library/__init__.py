@@ -1,9 +1,13 @@
+from __future__ import annotations
+
+import urllib
+from functools import singledispatchmethod
+from uuid import UUID
+
 from apiclient import APIClient, HeaderAuthentication, JsonResponseHandler
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from dotwiz import DotWiz
-
-from v2_api_client.dicts import TrackedChangedDict
 from v2_api_client.error_handling import APIErrorHandler
 
 
@@ -17,10 +21,6 @@ class TRSObject:
         self.object_id = self.data["id"]
         self.changed_data = {}
         super().__init__(*args, **kwargs)
-        # de-serialize dictionary data into python builtins and set as attributes
-        # will use generic JSON serializers but also have the ability to write
-        # custom ones to deal with more complex data types
-        # self.encode_data()
 
     def __getattribute__(self, item):
         try:
@@ -48,22 +48,32 @@ class TRSObject:
 
     def custom_action(self, method, action_name, data=None):
         request_method = getattr(self.api_client, method)
-        url = f"{self.retrieve_url}/{action_name}/"
-
-        if data:
-            return request_method(url, data=data)
-        else:
+        url = f"{self.retrieve_url}{action_name}/"
+        if method == "GET":
             return request_method(url)
+        else:
+            if not data:
+                data = dict()
+            return request_method(url, data=data)
 
     def save(self):
         if self.changed_data:
             return self.api_client.update(self.object_id, self.changed_data)
         return self.data
 
+    def update(self, data):
+        return self.api_client.update(self.object_id, data)
+
+    def refresh(self):
+        refreshed_object = self.api_client.retrieve(id=self.object_id)
+        self.data = refreshed_object.data
+        self.changed_data = {}
+        return self
 
 
 class BaseAPIClient(APIClient):
     base_endpoint = None
+    trs_object_class = TRSObject
 
     def __init__(
             self,
@@ -85,30 +95,41 @@ class BaseAPIClient(APIClient):
             **kwargs
         )
 
-    def __call__(self, object_id=None):
-        if object_id:
-            return self.retrieve(object_id)
-        return self.all()
+    @singledispatchmethod
+    def __call__(self, arg, fields: list = None):
+        return self()
+
+    @__call__.register
+    def _(self, arg: str, fields: list = None):
+        return self.retrieve(id=arg, fields=fields)
+
+    @__call__.register
+    def _(self, arg: UUID, fields: list = None):
+        return self.retrieve(id=arg, fields=fields)
+
+    @__call__.register
+    def _(
+            self, arg: dict, fields: list = None
+            ):
+        return self.create(data=arg, fields=fields)
+
+    def get_trs_object_class(self):
+        return self.trs_object_class
 
     def get_request_timeout(self) -> float:
         """Return the number of seconds before the request times out."""
         if self.timeout:
             return float(self.timeout)
-        return 40.0
+        return 20.0
 
     @staticmethod
-    def url(path, **kwargs):
+    def url(path, fields=None, **kwargs):
         url = f"{settings.API_BASE_URL}/api/v2/{path}/"
-        if kwargs:
-            added = False
-            for parameter, value in kwargs.items():
-                if value:
-                    if added:
-                        delimiter = "&"
-                    else:
-                        delimiter = "?"
-                    url += f"{delimiter}{parameter}={value}"
-                    added = True
+        if fields:
+            fields = {"query": f"{{{','.join(fields)}}}"}
+        if fields or kwargs:
+            if query_parameters := urllib.parse.urlencode({**kwargs, **fields}):
+                url += f"?{query_parameters}"
         return url
 
     def get_base_endpoint(self):
@@ -133,18 +154,18 @@ class BaseAPIClient(APIClient):
         return retrieve_url
 
     def all(self):
-        # return self.get(self.url(self.get_retrieve_endpoint(id)))
+        trs_object_class = self.get_trs_object_class()
         return [
-            TRSObject(
+            trs_object_class(
                 data=each,
                 api_client=self,
             ) for each in self.get(self.url(self.get_base_endpoint()))
         ]
 
-    def retrieve(self, id):
-        # return self.get(self.url(self.get_retrieve_endpoint(id)))
-        return TRSObject(
-            data=self.get(self.url(self.get_retrieve_endpoint(id))),
+    def retrieve(self, id, fields=None):
+        trs_object_class = self.get_trs_object_class()
+        return trs_object_class(
+            data=self.get(self.url(self.get_retrieve_endpoint(id), fields=fields)),
             api_client=self,
         )
 
@@ -154,5 +175,9 @@ class BaseAPIClient(APIClient):
     def delete_object(self, id):
         return self.delete(self.url(self.get_retrieve_endpoint(id)))
 
-    def create(self, **kwargs):
-        return self.post(self.url(self.get_base_endpoint()), data=kwargs)
+    def create(self, data, fields=None):
+        trs_object_class = self.get_trs_object_class()
+        return trs_object_class(
+            data=self.post(self.url(self.get_base_endpoint(), fields=fields), data=data),
+            api_client=self
+        )
