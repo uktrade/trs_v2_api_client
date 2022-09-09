@@ -1,5 +1,9 @@
-from v2_api_client.library import BaseAPIClient
+from v2_api_client.library import BaseAPIClient, TRSObject
 
+
+class UserObject(TRSObject):
+    def send_verification_email(self):
+        return self.custom_action("get", "send_verification_email")
 
 class UsersAPIClient(BaseAPIClient):
     base_endpoint = "users"
@@ -14,3 +18,6 @@ class UsersAPIClient(BaseAPIClient):
             "invitation_code": invitation_code,
             **kwargs
         })
+
+class TwoFactorAuthsAPIClient(BaseAPIClient):
+    base_endpoint = "two_factor_auths"

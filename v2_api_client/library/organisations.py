@@ -6,3 +6,7 @@ class OrganisationAPIClient(BaseAPIClient):
 
     def add_user_to_organisation(self):
         pass
+
+
+class OrganisationCaseRoleAPIClient(BaseAPIClient):
+    base_endpoint = "organisation_case_roles"
