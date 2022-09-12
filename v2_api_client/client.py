@@ -10,6 +10,7 @@ class TRSAPIClient:
         self.users = users.UsersAPIClient(token=token, *args, **kwargs)
         self.cases = cases.CasesAPIClient(token=token, *args, **kwargs)
         self.documents = documents.DocumentsAPIClient(token=token, *args, **kwargs)
+        self.document_bundles = documents.DocumentBundlesAPIClient(token=token, *args, **kwargs)
         self.invitations = invititations.InvitationsAPIClient(token=token, *args, **kwargs)
         self.organisations = organisations.OrganisationAPIClient(token=token, *args, **kwargs)
         self.contacts = contacts.ContactsAPIClient(token=token, *args, **kwargs)

@@ -15,42 +15,33 @@ class TRSObject:
     object_id = None
     encoder = DjangoJSONEncoder
 
-    def custom_get_attribute(self, item):
+    def __init__(self, *args, **kwargs):
+        self.lazy = kwargs.pop("lazy", None)
+        self.has_retrieved_data = False
+        self.object_id = kwargs.pop("object_id", None)
+
+        if self.lazy:
+            self.retrieval_url = kwargs.pop("retrieval_url")
+            self._data = {}
+        else:
+            self._data = DotWiz(kwargs.pop("data"))
+
+        self.api_client = kwargs.pop("api_client")
+        self.changed_data = {}
+
+        super().__init__(*args, **kwargs)
+
+    def __getattribute__(self, item):
         try:
             return super().__getattribute__(item)
         except AttributeError:
             return getattr(self.data_dict, item)
 
-    def custom_set_attribute(self, key, value):
-        if key == "data":
-            # We don't want to mess with this when we're initially setting the data attribute
-            return super().__setattr__(key, value)
-        if key in self.data:
-            self.changed_data[key] = value
-        return super().__setattr__(key, value)
-
-
-    def __init__(self, *args, **kwargs):
-        #self.__dict__["_data"] = DotWiz(kwargs.pop("data"))
-        #self.__dict__["lazy"] = kwargs.pop("lazy")
-        #self.__dict__["has_retrieved_data"] = False
-        #self.__dict__["api_client"] = kwargs.pop("api_client")
-        #self.__dict__["object_id"] = self.data["id"]
-        #self.__dict__["changed_data"] = {}
-        super().__init__(*args, **kwargs)
-        self.lazy = kwargs.pop("lazy")
-        self.has_retrieved_data = False
-        if not self.lazy:
-            self.data = DotWiz(kwargs.pop("data"))
-            self.object_id = self.data["id"]
-        self.api_client = kwargs.pop("api_client")
-        self.changed_data = {}
-
-        self.__getattribute__ = custom_get_attribute
-        self.__setattr__ = custom_set_attribute
-
     def __getitem__(self, item):
         return self.data_dict[item]
+
+    def __contains__(self, item):
+        return item in self.data_dict
 
     def __repr__(self):
         return f"{self.api_client.base_endpoint[:-1]} object {self.object_id}"
@@ -59,7 +50,9 @@ class TRSObject:
     def data_dict(self):
         if self.lazy and not self.has_retrieved_data:
             self.has_retrieved_data = True
-            self._data = self.api_client.get(self._data)
+            data = DotWiz(self.api_client.get(self.retrieval_url))
+            self._data = data
+
         return self._data
 
     @property
@@ -81,8 +74,8 @@ class TRSObject:
             return self.api_client.update(self.object_id, self.changed_data)
         return self.data
 
-    def update(self, data):
-        return self.api_client.update(self.object_id, data)
+    def update(self, data, fields=None):
+        return self.api_client.update(self.object_id, data, fields=fields)
 
     def delete(self):
         return self.api_client.delete(self.url(self.get_retrieve_endpoint(self.object_id)))
@@ -185,25 +178,30 @@ class BaseAPIClient(APIClient):
 
     def retrieve(self, id, fields=None, lazy=True):
         trs_object_class = self.get_trs_object_class()
-        if lazy:
-            data = self.url(self.get_retrieve_endpoint(id), fields=fields)
-        else:
-            data = self.get(self.url(self.get_retrieve_endpoint(id), fields=fields))
+        return trs_object_class(
+            retrieval_url=self.url(self.get_retrieve_endpoint(id), fields=fields),
+            object_id=id,
+            api_client=self,
+            lazy=True
+        )
+
+    def update(self, object_id, data, fields=None):
+        trs_object_class = self.get_trs_object_class()
+        data = self.patch(self.url(self.get_retrieve_endpoint(object_id), fields=fields), data=data)
         return trs_object_class(
             data=data,
             api_client=self,
-            lazy=lazy
+            object_id=data["id"]
         )
-
-    def update(self, object_id, data):
-        return self.put(self.url(self.get_retrieve_endpoint(object_id)), data=data)
 
     def delete_object(self, id):
         return self.delete(self.url(self.get_retrieve_endpoint(id)))
 
     def create(self, data, fields=None):
         trs_object_class = self.get_trs_object_class()
+        data = self.post(self.url(self.get_base_endpoint(), fields=fields), data=data)
         return trs_object_class(
-            data=self.post(self.url(self.get_base_endpoint(), fields=fields), data=data),
-            api_client=self
+            data=data,
+            api_client=self,
+            object_id=data["id"]
         )
