@@ -3,7 +3,7 @@ from v2_api_client.library import BaseAPIClient, TRSObject
 
 class InvitationObject(TRSObject):
     def send(self):
-        self.custom_action("post", "send_invitation")
+        return self.custom_action("post", "send_invitation")
 
     def create_user_from_invitation(self, password):
         self.custom_action(

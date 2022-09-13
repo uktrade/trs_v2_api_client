@@ -9,3 +9,6 @@ class CaseObject(TRSObject):
 class CasesAPIClient(BaseAPIClient):
     base_endpoint = "cases"
     trs_object_class = CaseObject
+
+    def open_to_roi(self):
+        return self._get(self.url(self.get_base_endpoint()), params={"open_to_roi": True})

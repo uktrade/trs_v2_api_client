@@ -5,6 +5,7 @@ from functools import singledispatchmethod
 from uuid import UUID
 
 from apiclient import APIClient, HeaderAuthentication, JsonResponseHandler
+from apiclient.utils.typing import OptionalDict
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from dotwiz import DotWiz
@@ -78,7 +79,7 @@ class TRSObject:
         return self.api_client.update(self.object_id, data, fields=fields)
 
     def delete(self):
-        return self.api_client.delete(self.url(self.get_retrieve_endpoint(self.object_id)))
+        return self.api_client.delete_object(self.object_id)
 
     def refresh(self):
         refreshed_object = self.api_client.retrieve(id=self.object_id)
@@ -113,7 +114,9 @@ class BaseAPIClient(APIClient):
 
     @singledispatchmethod
     def __call__(self, arg, fields: list = None):
-        return self()
+        raise Exception(
+            "You have to call the API client with either an: ID to retrieve a single object or a dictionary to create a new object. If you want to retrieve all objects as a list, please call .all()"
+        )
 
     @__call__.register
     def _(self, arg: str, fields: list = None):
@@ -163,31 +166,28 @@ class BaseAPIClient(APIClient):
         str
         """
         retrieve_url = f"{self.get_base_endpoint()}/{id}"
+
         for extra_path in args:
             retrieve_url += f"/{extra_path}"
         return retrieve_url
 
-    def all(self):
+    def all(self, fields=None):
         trs_object_class = self.get_trs_object_class()
         return [
             trs_object_class(
                 data=each,
                 api_client=self,
-            ) for each in self.get(self.url(self.get_base_endpoint()))
+                lazy=False
+            ) for each in self.get(self.url(self.get_base_endpoint(), fields=fields))
         ]
 
     def retrieve(self, id, fields=None, lazy=True):
-        trs_object_class = self.get_trs_object_class()
-        return trs_object_class(
-            retrieval_url=self.url(self.get_retrieve_endpoint(id), fields=fields),
-            object_id=id,
-            api_client=self,
-            lazy=True
-        )
+        url = self.url(self.get_retrieve_endpoint(id), fields=fields)
+        return self._get(url)
 
     def update(self, object_id, data, fields=None):
         trs_object_class = self.get_trs_object_class()
-        data = self.patch(self.url(self.get_retrieve_endpoint(object_id), fields=fields), data=data)
+        data = self.put(self.url(self.get_retrieve_endpoint(object_id), fields=fields), data=data)
         return trs_object_class(
             data=data,
             api_client=self,
@@ -200,6 +200,16 @@ class BaseAPIClient(APIClient):
     def create(self, data, fields=None):
         trs_object_class = self.get_trs_object_class()
         data = self.post(self.url(self.get_base_endpoint(), fields=fields), data=data)
+        return trs_object_class(
+            data=data,
+            api_client=self,
+            object_id=data["id"]
+        )
+
+    def _get(self, url: str, params: OptionalDict = None):
+        """Wraps GET requests to return a TRSObject"""
+        trs_object_class = self.get_trs_object_class()
+        data = self.get(url, params=params)
         return trs_object_class(
             data=data,
             api_client=self,
