@@ -26,5 +26,6 @@ setup(
         'requests',
         'api-client',
         'django-cache-memoize',
+        'dotwiz',
     ]
 )
