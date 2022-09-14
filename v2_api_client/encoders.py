@@ -8,5 +8,5 @@ class TRSObjectJsonEncoder(DjangoJSONEncoder):
 
     def default(self, o):
         if isinstance(o, TRSObject):
-            return json.dumps(o.data_dict.__dict__)
+            return self.encode(o.data_dict.__dict__)
         return super().default(o)

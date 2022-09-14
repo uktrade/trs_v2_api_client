@@ -2,7 +2,7 @@ from apiclient import exceptions
 from apiclient.error_handlers import BaseErrorHandler
 from apiclient.response import Response
 from json import JSONDecodeError
-
+from v2_api_client.exceptions import NotFoundError
 
 class APIErrorHandler(BaseErrorHandler):
 
@@ -13,7 +13,7 @@ class APIErrorHandler(BaseErrorHandler):
 
         if response.status_code == 404:
             # This is a 404, deal with this accordingly
-            return exceptions.ClientError(
+            return NotFoundError(
                 message=f"The endpoint {response.url} could not be found",
                 status_code=404
             )

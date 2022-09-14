@@ -9,6 +9,7 @@ from apiclient.utils.typing import OptionalDict
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from dotwiz import DotWiz
+
 from v2_api_client.error_handling import APIErrorHandler
 
 
@@ -56,19 +57,42 @@ class TRSObject:
 
         return self._data
 
-    @property
-    def retrieve_url(self):
-        return self.api_client.url(self.api_client.get_retrieve_endpoint(self.object_id))
+    def custom_action(
+            self,
+            method: str,
+            action_name: str,
+            data: OptionalDict = None,
+            fields: list = None
+    ):
+        """
+        Constructs and sends a request to a custom action in the API defined by a function
+        wrapped with the @action decorator
 
-    def custom_action(self, method, action_name, data=None):
+        Parameters
+        ----------
+        method : the method to make the request with, e.g. GET or POST
+        action_name : the name of the method in the API, marked by the url_path argument normally
+        data : data to pass along with the request
+        fields : what fields do you want the API to return
+
+        Returns
+        -------
+        TRSObject or a list of them. Typically... All of the custom actions in the API should
+        return a single object or a list of them, this is NOT guaranteed.
+        """
         request_method = getattr(self.api_client, method)
-        url = f"{self.retrieve_url}{action_name}/"
+        url = self.api_client.url(
+            self.api_client.get_retrieve_endpoint(self.object_id, action_name),
+            fields=fields
+        )
         if method == "GET":
-            return request_method(url)
+            request = request_method(url)
         else:
             if not data:
                 data = dict()
-            return request_method(url, data=data)
+            request = request_method(url, data=data)
+
+        return request
 
     def save(self):
         if self.changed_data:
@@ -172,14 +196,8 @@ class BaseAPIClient(APIClient):
         return retrieve_url
 
     def all(self, fields=None):
-        trs_object_class = self.get_trs_object_class()
-        return [
-            trs_object_class(
-                data=each,
-                api_client=self,
-                lazy=False
-            ) for each in self.get(self.url(self.get_base_endpoint(), fields=fields))
-        ]
+        url = self.url(self.get_base_endpoint(), fields=fields)
+        return self._get_many(url)
 
     def retrieve(self, id, fields=None, lazy=True):
         url = self.url(self.get_retrieve_endpoint(id), fields=fields)
@@ -215,3 +233,14 @@ class BaseAPIClient(APIClient):
             api_client=self,
             object_id=data["id"]
         )
+
+    def _get_many(self, url: str, params: OptionalDict = None):
+        """Wraps GET requests to an endpoint that returns a list of objects"""
+        trs_object_class = self.get_trs_object_class()
+        return [
+            trs_object_class(
+                data=each,
+                api_client=self,
+                lazy=False
+            ) for each in self.get(url, params=params)
+        ]

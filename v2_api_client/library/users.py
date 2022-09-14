@@ -7,6 +7,7 @@ class UserObject(TRSObject):
 
 class UsersAPIClient(BaseAPIClient):
     base_endpoint = "users"
+    trs_object_class = UserObject
 
     def get_user_by_email(self, email):
         return self._get(self.url(f"{self.get_base_endpoint()}/get_user_by_email/{email}"))
