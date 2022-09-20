@@ -20,6 +20,7 @@ class TRSAPIClient:
 
     The objects returned by these calls are instances of TRSObject (or a subclass).
     """
+
     def __init__(self, *args, **kwargs):
         token = kwargs.pop("token")
         super().__init__(*args, **kwargs)
@@ -36,25 +37,3 @@ class TRSAPIClient:
             token=token,
             *args, **kwargs
         )
-
-
-"""submission_id = "!234"
-
-client = TRSAPIClient()
-
-submission = client.submissions.retrieve(submission_id)
-submission == TRSObject()
-
-submission.date_created = datetime.datetime.now()
-submission.date_created += datetime.timedelta(days=30)
-
-submission.save()
-
-submission.date_created = datetime.datetime.now()
-submission.save()
-
-
-class MyOD(OD):
-    def __setattr__(self, key, value):
-        if isinstance(value, datetime.datetime):
-            value = value.strftime()"""
