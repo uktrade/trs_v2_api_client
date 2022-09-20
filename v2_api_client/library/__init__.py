@@ -112,6 +112,10 @@ class BaseAPIClient(APIClient):
         if fields:
             fields = {"query": f"{{{','.join(fields)}}}"}
         if fields or params:
+            if not fields:
+                fields = {}
+            if not params:
+                params = {}
             if query_parameters := urllib.parse.urlencode({**params, **fields}):
                 url += f"?{query_parameters}"
         return url

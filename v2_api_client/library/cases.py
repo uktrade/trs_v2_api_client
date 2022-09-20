@@ -11,4 +11,4 @@ class CasesAPIClient(BaseAPIClient):
     trs_object_class = CaseObject
 
     def open_to_roi(self):
-        return self._get_many(self.url(self.get_base_endpoint()), params={"open_to_roi": True})
+        return self._get_many(self.url(self.get_base_endpoint(), params={"open_to_roi": True}))
