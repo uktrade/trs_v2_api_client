@@ -1,8 +1,25 @@
-from v2_api_client.library import (cases, contacts, invititations, organisations, submissions,
-                                   users, documents)
+from v2_api_client.library import (cases, contacts, documents, invititations, organisations,
+                                   submissions, users)
 
 
 class TRSAPIClient:
+    """The V2 TRS API Client.
+
+    `Typically instantiated in middleware and exposed through the self.client object, but can be
+    instantiated on its own as long as you pass a token kwarg to __init__.
+
+    USAGE:
+
+    The API client has a number of attributes, all relating to a specific TRS object (e.g.
+    submissions). These attributes are instatiated subclasses of the BaseAPIClient class with
+    specific endpoints defined relating to the TRS object in question, (e.g. /submissions).
+
+    self.submissions({submission_id}) --> Submission object
+    self.submissions.all() --> List of submission objects
+    self.submissions({"case": {case_id}}) --> Creates a new submission object
+
+    The objects returned by these calls are instances of TRSObject (or a subclass).
+    """
     def __init__(self, *args, **kwargs):
         token = kwargs.pop("token")
         super().__init__(*args, **kwargs)

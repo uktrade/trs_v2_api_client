@@ -1,7 +1,7 @@
 from django.core.serializers.json import DjangoJSONEncoder
 
 from v2_api_client.library import TRSObject
-import json
+
 
 class TRSObjectJsonEncoder(DjangoJSONEncoder):
     """Custom encoder class used to encode TRSObjects."""

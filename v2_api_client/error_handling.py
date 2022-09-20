@@ -1,11 +1,13 @@
+from json import JSONDecodeError
+
 from apiclient import exceptions
 from apiclient.error_handlers import BaseErrorHandler
 from apiclient.response import Response
-from json import JSONDecodeError
+
 from v2_api_client.exceptions import NotFoundError
 
-class APIErrorHandler(BaseErrorHandler):
 
+class APIErrorHandler(BaseErrorHandler):
     @staticmethod
     def get_exception(response: Response) -> exceptions.APIRequestError:
         """Parses client errors to extract bad request reasons."""

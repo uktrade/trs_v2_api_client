@@ -1,5 +1,7 @@
-from v2_api_client.client import TRSAPIClient
 from django.conf import settings
+
+from v2_api_client.client import TRSAPIClient
+
 
 class APIClientMixin:
 
