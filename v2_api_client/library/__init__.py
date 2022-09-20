@@ -205,7 +205,7 @@ class BaseAPIClient(APIClient):
 
     def update(self, object_id, data, fields=None):
         trs_object_class = self.get_trs_object_class()
-        data = self.put(self.url(self.get_retrieve_endpoint(object_id), fields=fields), data=data)
+        data = self.patch(self.url(self.get_retrieve_endpoint(object_id), fields=fields), data=data)
         return trs_object_class(
             data=data,
             api_client=self,
