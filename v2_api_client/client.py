@@ -15,7 +15,7 @@ class TRSAPIClient:
     specific endpoints defined relating to the TRS object in question, (e.g. /submissions).
 
     self.submissions({submission_id}) --> Submission object
-    self.submissions.all() --> List of submission objects
+    self.submissions() --> List of all submission objects
     self.submissions({"case": {case_id}}) --> Creates a new submission object
 
     The objects returned by these calls are instances of TRSObject (or a subclass).
