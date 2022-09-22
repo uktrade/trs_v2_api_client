@@ -5,6 +5,9 @@ class CaseObject(TRSObject):
     def add_user(self, user_id):
         self.custom_action("post", "add_user", data={"user": user_id})
 
+    def get_invitations(self):
+        return self.custom_action("get", "get_invitations")
+
 
 class CasesAPIClient(BaseAPIClient):
     base_endpoint = "cases"
