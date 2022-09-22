@@ -4,6 +4,11 @@ from v2_api_client.library import BaseAPIClient
 class OrganisationAPIClient(BaseAPIClient):
     base_endpoint = "organisations"
 
+    def get_organisations_by_company_name(self, company_name):
+        return self._get_many(self.url(
+            f"{self.get_base_endpoint()}/search_by_company_name",
+            params={"company_name": company_name}
+        ))
 
 class OrganisationCaseRoleAPIClient(BaseAPIClient):
     base_endpoint = "organisation_case_roles"
