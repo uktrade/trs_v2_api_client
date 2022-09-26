@@ -5,6 +5,15 @@ class UserObject(TRSObject):
     def send_verification_email(self):
         return self.custom_action("get", "send_verification_email")
 
+    def add_group(self, group_name):
+        """Adds user to Group group_name"""
+        return self.custom_action("put", "change_group", data={"group_name": group_name})
+
+    def delete_group(self, group_name):
+        """Deletes user from Group group_name"""
+        return self.custom_action("delete", "change_group", data={"group_name": group_name})
+
+
 class UsersAPIClient(BaseAPIClient):
     base_endpoint = "users"
     trs_object_class = UserObject
@@ -19,6 +28,7 @@ class UsersAPIClient(BaseAPIClient):
             "invitation_code": invitation_code,
             **kwargs
         })
+
 
 class TwoFactorAuthsAPIClient(BaseAPIClient):
     base_endpoint = "two_factor_auths"

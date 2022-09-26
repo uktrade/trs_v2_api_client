@@ -1,5 +1,13 @@
-from v2_api_client.library import (cases, contacts, documents, invititations, organisations,
-                                   submissions, users)
+from v2_api_client.library import (
+    cases,
+    contacts,
+    documents,
+    invititations,
+    organisations,
+    submissions,
+    users,
+    generic
+)
 
 
 class TRSAPIClient:
@@ -33,6 +41,7 @@ class TRSAPIClient:
         self.organisations = organisations.OrganisationAPIClient(token=token, *args, **kwargs)
         self.contacts = contacts.ContactsAPIClient(token=token, *args, **kwargs)
         self.two_factor_auths = users.TwoFactorAuthsAPIClient(token=token, *args, **kwargs)
+        self.feature_flags = generic.FeatureFlagsAPIClient(token=token, *args, **kwargs)
         self.organisation_case_roles = organisations.OrganisationCaseRoleAPIClient(
             token=token,
             *args, **kwargs
