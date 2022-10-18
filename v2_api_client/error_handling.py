@@ -22,7 +22,7 @@ class APIErrorHandler(BaseErrorHandler):
             # errors to make it easier to debug, if not, carry on as normal.
             try:
                 response_json = response.json()
-                if response_json.pop("exception_type", None) == "save_serializer_invalid_error":
+                if isinstance(response_json, dict) and response_json.pop("exception_type", None) == "save_serializer_invalid_error":
                     # It's an invalid serializer exception, good!
                     return InvalidSerializerError(
                         serializer_class=response_json.pop("serializer_name", "unknown_serializer"),

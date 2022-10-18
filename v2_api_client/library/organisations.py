@@ -1,14 +1,29 @@
 from v2_api_client.library import BaseAPIClient
+from v2_api_client.trs_object import TRSObject
+
+
+class OrganisationObject(TRSObject):
+    def add_user(self, user_id, group_name):
+        return self.custom_action(
+            "put",
+            "add_user",
+            data={
+                "user_id": user_id,
+                "organisation_security_group": group_name
+            }
+        )
 
 
 class OrganisationAPIClient(BaseAPIClient):
     base_endpoint = "organisations"
+    trs_object_class = OrganisationObject
 
     def get_organisations_by_company_name(self, company_name):
         return self._get_many(self.url(
             f"{self.get_base_endpoint()}/search_by_company_name",
             params={"company_name": company_name}
         ))
+
 
 class OrganisationCaseRoleAPIClient(BaseAPIClient):
     base_endpoint = "organisation_case_roles"

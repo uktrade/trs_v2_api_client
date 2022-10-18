@@ -112,13 +112,13 @@ class TRSObject:
             fields=fields
         )
         if method == "GET":
-            request = request_method(url)
+            response = request_method(url)
         else:
             if not data:
                 data = dict()
-            request = request_method(url, data=data)
+            response = request_method(url, data=data)
 
-        return request
+        return response
 
     def update(self, data: dict, fields: list = None) -> TRSObject:
         """
