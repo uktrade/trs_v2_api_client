@@ -88,7 +88,8 @@ class TRSObject:
             method: str,
             action_name: str,
             data: OptionalDict = None,
-            fields: list = None
+            fields: list = None,
+            params: dict = None,
     ):
         """
         Constructs and sends a request to a custom action in the API defined by a function
@@ -100,6 +101,7 @@ class TRSObject:
         action_name : the name of the method in the API, marked by the url_path argument normally
         data : data to pass along with the request
         fields : what fields do you want the API to return
+        params : what URL parameters you want to add to the API request
 
         Returns
         -------
@@ -109,7 +111,8 @@ class TRSObject:
         request_method = getattr(self.api_client, method)
         url = self.api_client.url(
             self.api_client.get_retrieve_endpoint(self.object_id, action_name),
-            fields=fields
+            fields=fields,
+            params=params
         )
         if method == "GET":
             response = request_method(url)

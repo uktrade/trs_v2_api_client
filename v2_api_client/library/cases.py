@@ -8,6 +8,8 @@ class CaseObject(TRSObject):
     def get_invitations(self):
         return self.custom_action("get", "get_invitations")
 
+    def get_submissions(self, params):
+        return self.custom_action("get", "get_submissions", params=params)
 
 class CasesAPIClient(BaseAPIClient):
     base_endpoint = "cases"
