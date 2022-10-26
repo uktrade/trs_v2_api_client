@@ -33,7 +33,7 @@ class OrganisationCaseRoleAPIClient(BaseAPIClient):
         """Returns the OrganisationCaseRole object (if it exists) that is associated with a
         particular case and organisation object.
         """
-        return self._get(self.url(self.get_base_endpoint(), params={
+        return self._get_many(self.url(self.get_base_endpoint(), params={
             "case_id": case_id,
             "organisation_id": organisation_id
         }))
