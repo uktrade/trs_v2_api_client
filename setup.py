@@ -27,6 +27,6 @@ setup(
         'api-client',
         'django-cache-memoize',
         'dotwiz',
-        'dateutil'
+        'python-dateutil'
     ]
 )
