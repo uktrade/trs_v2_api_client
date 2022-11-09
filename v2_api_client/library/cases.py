@@ -11,9 +11,14 @@ class CaseObject(TRSObject):
     def get_submissions(self, params):
         return self.custom_action("get", "get_submissions", params=params)
 
+
 class CasesAPIClient(BaseAPIClient):
     base_endpoint = "cases"
     trs_object_class = CaseObject
 
     def open_to_roi(self):
         return self._get_many(self.url(self.get_base_endpoint(), params={"open_to_roi": True}))
+
+
+"{api_url}/v2/submissions"
+"{api_url}/v2/cases"

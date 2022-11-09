@@ -4,6 +4,8 @@ from apiclient.utils.typing import OptionalDict
 from django.core.serializers.json import DjangoJSONEncoder
 from dotwiz import DotWiz
 
+from v2_api_client.decoders import encode
+
 
 class TRSObject:
     """An object returned by the TRS API.
@@ -41,6 +43,7 @@ class TRSObject:
             self._data = {}
         else:
             self._data = DotWiz(kwargs.pop("data"))
+            self.encode_nested_dict(self._data)
 
         self.api_client = kwargs.pop("api_client")
         self.changed_data = {}
@@ -67,6 +70,46 @@ class TRSObject:
         API client that generated it."""
         return f"{self.api_client.base_endpoint[:-1]} object {self.object_id}"
 
+    def encode_nested_dict(self, in_dict: dict) -> None:
+        """
+        Recursively encodes all values the in_dict (in-place).
+
+        e.g.
+
+        {
+            "sub_dict": {
+                "date_created": "2023-03-21T13:23:20"
+            }
+        }
+
+        --->
+        TURNS TO
+        --->
+
+        {
+            "sub_dict": {
+                "date_created": datetime.datetime(year=2023, month=3, day=21, hour=13, minute=23)
+            }
+        }
+
+        Parameters
+        ----------
+        in_dict : a dictionary that you want to encode
+
+        Returns
+        -------
+        None, it performs the encoding in-place
+        """
+        for k, v in in_dict.items():
+            if isinstance(v, DotWiz):
+                self.encode_nested_dict(v)
+            elif isinstance(v, list):
+                for o in v:
+                    if isinstance(o, DotWiz):
+                        self.encode_nested_dict(o)
+            else:
+                in_dict[k] = encode(v)
+
     @property
     def data_dict(self):
         """Wrapped in a property to allow for lazy retrieval from the API.
@@ -76,10 +119,12 @@ class TRSObject:
 
         If the ._data attribute exists, it just returns that instead.
         """
-        if self.lazy and not self.has_retrieved_data:
+        if self.lazy and self.retrieval_url and not self.has_retrieved_data:
             self.has_retrieved_data = True
             data = DotWiz(self.api_client.get(self.retrieval_url))
             self._data = data
+            self.object_id = data["id"]
+            self.encode_nested_dict(self._data)
 
         return self._data
 
@@ -160,7 +205,7 @@ class TRSObject:
             url = self.api_client.get_retrieve_endpoint(object_id=self.object_id)
         else:
             url = self.retrieval_url
-        refreshed_object = self.api_client._get(url=url)
+        refreshed_object = self.api_client._get(url=url, object_id=self.object_id)
         self.data = refreshed_object.data
         self.changed_data = {}
         return self

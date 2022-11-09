@@ -78,7 +78,7 @@ class BaseAPIClient(APIClient):
         if isinstance(arg, str) or isinstance(arg, UUID):
             # it's called with a str or UUID ID, retrieve one instance
             url = self.url(self.get_retrieve_endpoint(arg), fields=fields, params=params)
-            return self._get(url=url)
+            return self._get(url=url, object_id=arg)
         if isinstance(arg, dict):
             # it's called with a dict, create and retrieve one instance
             url = self.url(self.get_base_endpoint(), fields=fields, params=params)
@@ -185,15 +185,14 @@ class BaseAPIClient(APIClient):
             retrieval_url=self.get_retrieve_endpoint(object_id=data["id"])
         )
 
-    def _get(self, url: str):
+    def _get(self, url: str, object_id: Union[str, UUID]):
         """Wraps GET requests to return a TRSObject"""
         trs_object_class = self.get_trs_object_class()
-        data = self.get(url)
         return trs_object_class(
-            data=data,
             api_client=self,
-            object_id=data["id"],
-            retrieval_url=url
+            retrieval_url=url,
+            lazy=True,
+            object_id=object_id
         )
 
     def _get_many(self, url: str):

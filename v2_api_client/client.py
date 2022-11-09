@@ -42,6 +42,7 @@ class TRSAPIClient:
         self.contacts = contacts.ContactsAPIClient(token=token, *args, **kwargs)
         self.two_factor_auths = users.TwoFactorAuthsAPIClient(token=token, *args, **kwargs)
         self.feature_flags = generic.FeatureFlagsAPIClient(token=token, *args, **kwargs)
+        self.feedback = generic.FeedbackAPIClient(token=token, *args, **kwargs)
         self.organisation_case_roles = organisations.OrganisationCaseRoleAPIClient(
             token=token,
             *args, **kwargs
