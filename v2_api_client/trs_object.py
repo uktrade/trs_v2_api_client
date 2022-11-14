@@ -35,7 +35,6 @@ class TRSObject:
 
     def __init__(self, *args, **kwargs):
         self.lazy = kwargs.pop("lazy", None)
-        self.has_retrieved_data = False
         self.object_id = kwargs.pop("object_id", None)
         self.retrieval_url = kwargs.pop("retrieval_url", None)
 
@@ -119,8 +118,10 @@ class TRSObject:
 
         If the ._data attribute exists, it just returns that instead.
         """
-        if self.lazy and self.retrieval_url and not self.has_retrieved_data:
-            self.has_retrieved_data = True
+        if self._data:
+            return self._data
+
+        if self.lazy and self.retrieval_url:
             data = DotWiz(self.api_client.get(self.retrieval_url))
             self._data = data
             self.object_id = data["id"]

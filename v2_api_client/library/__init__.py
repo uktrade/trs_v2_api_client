@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import base64
+import json
 import urllib
 from typing import Union
 from uuid import UUID
@@ -46,7 +48,8 @@ class BaseAPIClient(APIClient):
             self,
             arg: Union[str, UUID, dict, None] = None,
             fields: list[str] = None,
-            params: dict = None
+            params: dict = None,
+            **kwargs
     ) -> Union[TRSObject, list[TRSObject]]:
         """
         Can do the following:
@@ -60,6 +63,7 @@ class BaseAPIClient(APIClient):
         arg : ID of the object
         fields : A list of fields you want returned by the API
         params : a dict of query parameters to append to the URL
+        filter : a dict of query parameters to append to the URL
 
         Returns
         -------
@@ -69,8 +73,15 @@ class BaseAPIClient(APIClient):
         -------
         self({object_id}) --> Retrieves a single instance - GET
         self() --> Lists all instances - GET
+        self(created_at={user_id}) --> Lists all instances of object with field created_at=user_id - GET
         self({"key": "value"}) --> Creates and retrieves a single instance - POST
         """
+        if kwargs:
+            # additional filters to apply to the queryset returned, whereby the argument name is
+            # the name of the model field, and the argument value is the desired value you want to
+            # retrieve
+            url = self.url(self.get_base_endpoint(), filter_parameters=kwargs)
+            return self._get_many(url)
         if arg is None:
             # it's called with no args, return all
             url = self.url(self.get_base_endpoint(), fields=fields, params=params)
@@ -94,7 +105,12 @@ class BaseAPIClient(APIClient):
         return 20.0
 
     @staticmethod
-    def url(path: str, fields: list = None, params: dict = None) -> str:
+    def url(
+            path: str,
+            fields: list = None,
+            params: dict = None,
+            filter_parameters: dict = None
+    ) -> str:
         """
         Helper function to generate URLs using the API_BASE_URL and path provided.
 
@@ -103,20 +119,27 @@ class BaseAPIClient(APIClient):
         path : the path of the API endpoint
         fields : what fields you want returned by the API as defined by the "query" GET parameter
         params : a dictionary of query parameters you want appended to the URL
+        filter_parameters : a dictionary of additional key/value parameters to filter the queryset with
 
         Returns
         -------
         a complete URL
         """
+        fields = fields if fields else dict()
+        params = params if params else dict()
+        filter_parameters = filter_parameters if filter_parameters else dict()
+
         url = f"{settings.API_BASE_URL}/api/v2/{path}/"
         if fields:
             fields = {"query": f"{{{','.join(fields)}}}"}
-        if fields or params:
-            if not fields:
-                fields = {}
-            if not params:
-                params = {}
-            if query_parameters := urllib.parse.urlencode({**params, **fields}):
+        if filter_parameters:
+            # let's convert the filter_parameter dict into a json string and encode in base64, so we
+            # can pass it over a URL (we could do this a different way with custom delimeters but
+            # this seems nicer
+            base64_json_filter_parameters = base64.urlsafe_b64encode(json.dumps(filter_parameters).encode()).decode()
+            filter_parameters = {"filter_parameters": base64_json_filter_parameters}
+        if fields or params or filter_parameters:
+            if query_parameters := urllib.parse.urlencode({**params, **fields, **filter_parameters}):
                 url += f"?{query_parameters}"
         return url
 
@@ -203,6 +226,7 @@ class BaseAPIClient(APIClient):
                 data=each,
                 api_client=self,
                 lazy=False,
-                retrieval_url=self.get_retrieve_endpoint(object_id=each["id"])
+                retrieval_url=self.get_retrieve_endpoint(object_id=each["id"]),
+                object_id=each["id"]
             ) for each in self.get(url)
         ]
