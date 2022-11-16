@@ -12,7 +12,22 @@ class ContactObject(TRSObject):
             }
         )
 
+    def add_to_case(self, case_id, organisation_id=None, primary=False):
+        return self.custom_action(
+            "patch",
+            "add_to_case",
+            data={
+                "case_id": case_id,
+                "organisation_id": organisation_id,
+                "primary": primary,
+            }
+        )
+
 
 class ContactsAPIClient(BaseAPIClient):
     base_endpoint = "contacts"
     trs_object_class = ContactObject
+
+
+class CaseContactsAPIClient(BaseAPIClient):
+    base_endpoint = "case_contacts"

@@ -11,6 +11,13 @@ class InvitationObject(TRSObject):
             "create_user_from_invitation",
             data={"password": password})
 
+    def process_representative_invitation(self, approved="no"):
+        return self.custom_action(
+            "patch",
+            "process_representative_invitation",
+            data={"approved": approved}
+        )
+
 
 class InvitationsAPIClient(BaseAPIClient):
     base_endpoint = "invitations"

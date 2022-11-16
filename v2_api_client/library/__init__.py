@@ -136,7 +136,7 @@ class BaseAPIClient(APIClient):
             # let's convert the filter_parameter dict into a json string and encode in base64, so we
             # can pass it over a URL (we could do this a different way with custom delimeters but
             # this seems nicer
-            base64_json_filter_parameters = base64.urlsafe_b64encode(json.dumps(filter_parameters).encode()).decode()
+            base64_json_filter_parameters = base64.urlsafe_b64encode(json.dumps(filter_parameters, default=str).encode()).decode()
             filter_parameters = {"filter_parameters": base64_json_filter_parameters}
         if fields or params or filter_parameters:
             if query_parameters := urllib.parse.urlencode({**params, **fields, **filter_parameters}):
@@ -208,7 +208,7 @@ class BaseAPIClient(APIClient):
             retrieval_url=self.get_retrieve_endpoint(object_id=data["id"])
         )
 
-    def _get(self, url: str, object_id: Union[str, UUID]):
+    def _get(self, url: str, object_id: Union[str, UUID, None] = None):
         """Wraps GET requests to return a TRSObject"""
         trs_object_class = self.get_trs_object_class()
         return trs_object_class(

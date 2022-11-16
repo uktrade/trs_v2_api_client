@@ -40,6 +40,7 @@ class TRSAPIClient:
         self.invitations = invititations.InvitationsAPIClient(token=token, *args, **kwargs)
         self.organisations = organisations.OrganisationAPIClient(token=token, *args, **kwargs)
         self.contacts = contacts.ContactsAPIClient(token=token, *args, **kwargs)
+        self.case_contacts = contacts.CaseContactsAPIClient(token=token, *args, **kwargs)
         self.two_factor_auths = users.TwoFactorAuthsAPIClient(token=token, *args, **kwargs)
         self.feature_flags = generic.FeatureFlagsAPIClient(token=token, *args, **kwargs)
         self.feedback = generic.FeedbackAPIClient(token=token, *args, **kwargs)
