@@ -80,7 +80,7 @@ class BaseAPIClient(APIClient):
             # additional filters to apply to the queryset returned, whereby the argument name is
             # the name of the model field, and the argument value is the desired value you want to
             # retrieve
-            url = self.url(self.get_base_endpoint(), filter_parameters=kwargs)
+            url = self.url(self.get_base_endpoint(), fields=fields, filter_parameters=kwargs)
             return self._get_many(url)
         if arg is None:
             # it's called with no args, return all
