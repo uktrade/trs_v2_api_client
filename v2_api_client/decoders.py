@@ -11,7 +11,7 @@ def encode(string):
     value = None
 
     # maybe it is a datetime
-    if isinstance(string, str) and (len(string) == 24 or len(string) == 27) and "T" in string:
+    if isinstance(string, str) and len(string) in [24, 25, 26, 27] and "T" in string:
         try:
             value = parser.parse(string)
         except (ParserError, TypeError):
