@@ -3,7 +3,7 @@ from v2_api_client.trs_object import TRSObject
 
 
 class OrganisationObject(TRSObject):
-    def add_user(self, user_id, group_name, confirmed):
+    def add_user(self, user_id, group_name, confirmed, **kwargs):
         return self.custom_action(
             "put",
             "add_user",
@@ -11,7 +11,8 @@ class OrganisationObject(TRSObject):
                 "user_id": user_id,
                 "organisation_security_group": group_name,
                 "confirmed": confirmed,
-            }
+            },
+            **kwargs
         )
 
 
