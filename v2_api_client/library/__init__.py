@@ -35,7 +35,7 @@ class BaseAPIClient(APIClient):
             token=kwargs.pop("token", settings.HEALTH_CHECK_TOKEN),
             parameter="Authorization",
             scheme="Token",
-            extra={"X-Origin-Environment": settings.ENVIRONMENT_KEY}
+            extra={"X-Origin-Environment": settings.ENVIRONMENT_KEY},
         )
         super().__init__(
             authentication_method=authentication_method,

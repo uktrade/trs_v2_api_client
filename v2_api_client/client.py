@@ -31,20 +31,84 @@ class TRSAPIClient:
 
     def __init__(self, *args, **kwargs):
         token = kwargs.pop("token")
+        timeout = kwargs.pop("timeout", None)
+        
         super().__init__(*args, **kwargs)
-        self.submissions = submissions.SubmissionsAPIClient(token=token, *args, **kwargs)
-        self.users = users.UsersAPIClient(token=token, *args, **kwargs)
-        self.cases = cases.CasesAPIClient(token=token, *args, **kwargs)
-        self.documents = documents.DocumentsAPIClient(token=token, *args, **kwargs)
-        self.document_bundles = documents.DocumentBundlesAPIClient(token=token, *args, **kwargs)
-        self.invitations = invititations.InvitationsAPIClient(token=token, *args, **kwargs)
-        self.organisations = organisations.OrganisationAPIClient(token=token, *args, **kwargs)
-        self.contacts = contacts.ContactsAPIClient(token=token, *args, **kwargs)
-        self.case_contacts = contacts.CaseContactsAPIClient(token=token, *args, **kwargs)
-        self.two_factor_auths = users.TwoFactorAuthsAPIClient(token=token, *args, **kwargs)
-        self.feature_flags = generic.FeatureFlagsAPIClient(token=token, *args, **kwargs)
-        self.feedback = generic.FeedbackAPIClient(token=token, *args, **kwargs)
-        self.organisation_case_roles = organisations.OrganisationCaseRoleAPIClient(
+        self.submissions = submissions.SubmissionsAPIClient(
             token=token,
-            *args, **kwargs
+            timeout=timeout,
+            *args,
+            **kwargs
+        )
+        self.users = users.UsersAPIClient(
+            token=token, 
+            timeout=timeout, 
+            *args, 
+            **kwargs
+        )
+        self.cases = cases.CasesAPIClient(
+            token=token, 
+            timeout=timeout, 
+            *args, 
+            **kwargs
+        )
+        self.documents = documents.DocumentsAPIClient(
+            token=token, 
+            timeout=timeout, 
+            *args, 
+            **kwargs
+        )
+        self.document_bundles = documents.DocumentBundlesAPIClient(
+            token=token, 
+            timeout=timeout, 
+            *args, 
+            **kwargs
+        )
+        self.invitations = invititations.InvitationsAPIClient(
+            token=token, 
+            timeout=timeout, 
+            *args, 
+            **kwargs
+        )
+        self.organisations = organisations.OrganisationAPIClient(
+            token=token, 
+            timeout=timeout, 
+            *args, 
+            **kwargs
+        )
+        self.contacts = contacts.ContactsAPIClient(
+            token=token, 
+            timeout=timeout, 
+            *args, 
+            **kwargs
+        )
+        self.case_contacts = contacts.CaseContactsAPIClient(
+            token=token, 
+            timeout=timeout, 
+            *args, 
+            **kwargs
+        )
+        self.two_factor_auths = users.TwoFactorAuthsAPIClient(
+            token=token, 
+            timeout=timeout, 
+            *args, 
+            **kwargs
+        )
+        self.feature_flags = generic.FeatureFlagsAPIClient(
+            token=token, 
+            timeout=timeout, 
+            *args, 
+            **kwargs
+        )
+        self.feedback = generic.FeedbackAPIClient(
+            token=token, 
+            timeout=timeout, 
+            *args, 
+            **kwargs
+        )
+        self.organisation_case_roles = organisations.OrganisationCaseRoleAPIClient(
+            token=token, 
+            timeout=timeout, 
+            *args, 
+            **kwargs
         )
