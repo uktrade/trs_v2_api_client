@@ -20,10 +20,10 @@ class OrganisationAPIClient(BaseAPIClient):
     base_endpoint = "organisations"
     trs_object_class = OrganisationObject
 
-    def get_organisations_by_company_name(self, company_name):
+    def get_organisations_by_company_name(self, company_name, **kwargs):
         return self._get_many(self.url(
             f"{self.get_base_endpoint()}/search_by_company_name",
-            params={"company_name": company_name}
+            params={"company_name": company_name, **kwargs}
         ))
 
 
