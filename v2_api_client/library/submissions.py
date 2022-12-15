@@ -1,17 +1,34 @@
-from v2_api_client.library import BaseAPIClient
+from __future__ import annotations
+
+from v2_api_client.library import BaseAPIClient, TRSObject
+
+
+class SubmissionObject(TRSObject):
+    def add_organisation_to_registration_of_interest(
+        self,
+        organisation_id,
+    ):
+        return self.custom_action(
+            "put",
+            "add_organisation_to_registration_of_interest",
+            data={
+                "organisation_id": organisation_id,
+            },
+            fields=["id"]
+        )
+
+    def update_submission_status(self, new_status):
+        return self.custom_action(
+            "put",
+            "update_submission_status",
+            data={
+                "new_status": new_status
+            },
+            fields=["id"]
+        )
+
 
 
 class SubmissionsAPIClient(BaseAPIClient):
-    def get_submissions(self, submission_type=None):
-        return self.get(self.url("submissions", submission_type=submission_type))
-
-    def get_submission(self, submission_id):
-        return self.get(self.url(f"submissions/{submission_id}"))
-
-    def create_submission(self, **kwargs):
-        return self.post(self.url("submissions"), data=kwargs)
-
-    def update_submission_status(self, submission_id, new_status):
-        return self.put(self.url(f"submissions/{submission_id}/update_submission_status"), data={
-            "new_status": new_status
-        })
+    base_endpoint = "submissions"
+    trs_object_class = SubmissionObject
