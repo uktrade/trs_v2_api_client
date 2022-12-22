@@ -19,7 +19,7 @@ class ContactObject(TRSObject):
             data={
                 "case_id": case_id,
                 "organisation_id": organisation_id,
-                "primary": primary,
+                "primary": "yes" if primary else "no",
             }
         )
 
