@@ -41,7 +41,7 @@ class OrganisationAPIClient(BaseAPIClient):
 
         trs_object_class = self.get_trs_object_class()
 
-        return [trs_object_class(data=result, api_client=self, lazy=False) for result in results]
+        return [trs_object_class(data=result, api_client=self, lazy=False, object_id=result["id"]) for result in results]
 
     def get_organisations_by_company_name(self, company_name, **kwargs):
         return self._get_many(self.url(
