@@ -35,16 +35,15 @@ class TRSObject:
 
     def __init__(self, *args, **kwargs):
         self.lazy = kwargs.pop("lazy", None)
-        self.object_id = kwargs.pop("object_id", None)
-        self.retrieval_url = kwargs.pop("retrieval_url", None)
-
         if self.lazy:
             self._data = {}
         else:
             self._data = DotWiz(kwargs.pop("data"))
             self.encode_nested_dict(self._data)
 
-        self.api_client = kwargs.pop("api_client")
+        self.api_client = kwargs.pop("api_client", None)
+        self.object_id = kwargs.pop("object_id", None)
+        self.retrieval_url = kwargs.pop("retrieval_url", None)
         self.changed_data = {}
 
         super().__init__(*args, **kwargs)

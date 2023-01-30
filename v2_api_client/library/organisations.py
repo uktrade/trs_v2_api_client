@@ -1,6 +1,6 @@
 from v2_api_client.library import BaseAPIClient
 from v2_api_client.trs_object import TRSObject
-import concurrent.futures
+
 
 class OrganisationObject(TRSObject):
     def add_user(self, user_id, group_name, confirmed, **kwargs):
@@ -15,6 +15,27 @@ class OrganisationObject(TRSObject):
             **kwargs
         )
 
+    def find_similar_organisations(self, **kwargs):
+        return self.custom_action(
+            "get",
+            "find_similar_organisations",
+            **kwargs
+        )
+
+    def has_similar_organisations(self, **kwargs):
+        return self.custom_action(
+            "get",
+            "has_similar_organisations",
+            **kwargs
+        )
+
+    def organisation_card_data(self, **kwargs):
+        return self.custom_action(
+            "get",
+            "get_organisation_card_data",
+            **kwargs
+        )
+
 
 class OrganisationAPIClient(BaseAPIClient):
     base_endpoint = "organisations"
@@ -22,32 +43,23 @@ class OrganisationAPIClient(BaseAPIClient):
 
     def _get_many(self, url):
         """Fetches all organisations concurrently using the Python ThreadPoolExecutor with a paginated API endpoint"""
-        results = []
         response = self.get(url)
         pages = response["total_pages"]
 
         URLS = [f"{url}?page={number}" for number in range(1, pages + 1)]
-
-        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-            # Start the load operations and mark each future with its URL
-            future_to_url = {executor.submit(self.get, url): url for url in URLS}
-
-            for future in concurrent.futures.as_completed(future_to_url):
-                url = future_to_url[future]
-                try:
-                    results.extend(future.result()["results"])
-                except Exception as exc:
-                    print('%r generated an exception: %s' % (url, exc))
-
-        trs_object_class = self.get_trs_object_class()
-
-        return [trs_object_class(data=result, api_client=self, lazy=False, object_id=result["id"]) for result in results]
+        return self.get_concurrently(URLS)
 
     def get_organisations_by_company_name(self, company_name, **kwargs):
         return self._get_many(self.url(
             f"{self.get_base_endpoint()}/search_by_company_name",
             params={"company_name": company_name, **kwargs}
         ))
+
+    def get_organisation_cards(self, *args):
+        urls = [self.url(
+            self.get_retrieve_endpoint(object_id, "get_organisation_card_data"),
+        ) for object_id in args]
+        return self.get_concurrently(urls)
 
 
 class OrganisationCaseRoleAPIClient(BaseAPIClient):
@@ -61,3 +73,44 @@ class OrganisationCaseRoleAPIClient(BaseAPIClient):
             "case_id": case_id,
             "organisation_id": organisation_id
         }))
+
+
+class OrganisationMergeRecordObject(TRSObject):
+    def get_draft_merged_organisation(self, **kwargs):
+        return self.custom_action(
+            "get",
+            "get_draft_merged_organisation",
+            **kwargs
+        )
+
+    def get_draft_merged_selections(self, current_duplicate_id=None, **kwargs):
+        """Returns what the Organisation would look like if the current merge selection were applied.
+        Can also be used to get a list of identical fields between the draft organisation and the
+        current duplicate being considered.
+        """
+        params = kwargs.pop("params", {})
+        if current_duplicate_id:
+            params["current_duplicate_id"] = current_duplicate_id
+
+        return self.custom_action(
+            "get",
+            "get_draft_merged_selections",
+            params=params,
+            **kwargs
+        )
+
+    def merge_organisations(self, **kwargs):
+        return self.custom_action(
+            "post",
+            "merge_organisations",
+            **kwargs
+        )
+
+
+class OrganisationMergeRecordAPIClient(BaseAPIClient):
+    base_endpoint = "organisation_merge_records"
+    trs_object_class = OrganisationMergeRecordObject
+
+
+class DuplicateOrganisationMergeAPIClient(BaseAPIClient):
+    base_endpoint = "duplicate_organisation_merges"

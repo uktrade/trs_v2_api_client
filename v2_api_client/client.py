@@ -112,3 +112,21 @@ class TRSAPIClient:
             *args, 
             **kwargs
         )
+        self.organisation_merge_records = organisations.OrganisationMergeRecordAPIClient(
+            token=token,
+            timeout=timeout,
+            *args,
+            **kwargs
+        )
+        self.duplicate_organisation_merges = organisations.DuplicateOrganisationMergeAPIClient(
+            token=token,
+            timeout=timeout,
+            *args,
+            **kwargs
+        )
+        self.submission_organisation_merge_records = submissions.SubmissionOrganisationMergeRecordAPIClient(
+            token=token,
+            timeout=timeout,
+            *args,
+            **kwargs
+        )

@@ -5,8 +5,8 @@ from v2_api_client.library import BaseAPIClient, TRSObject
 
 class SubmissionObject(TRSObject):
     def add_organisation_to_registration_of_interest(
-        self,
-        organisation_id,
+            self,
+            organisation_id,
     ):
         return self.custom_action(
             "put",
@@ -28,7 +28,10 @@ class SubmissionObject(TRSObject):
         )
 
 
-
 class SubmissionsAPIClient(BaseAPIClient):
     base_endpoint = "submissions"
     trs_object_class = SubmissionObject
+
+
+class SubmissionOrganisationMergeRecordAPIClient(BaseAPIClient):
+    base_endpoint = "submission_organisation_merge_records"
