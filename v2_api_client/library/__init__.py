@@ -133,7 +133,7 @@ class BaseAPIClient(APIClient):
         fields = fields if fields else dict()
         params = params if params else dict()
         filter_parameters = filter_parameters if filter_parameters else dict()
-        slim = {"slim": "yes" if slim else "no"}
+        slim = {}
 
         url = f"{settings.API_BASE_URL}/api/v2/{path}/"
         if fields:
@@ -144,6 +144,8 @@ class BaseAPIClient(APIClient):
             # this seems nicer
             base64_json_filter_parameters = base64.urlsafe_b64encode(json.dumps(filter_parameters, default=str).encode()).decode()
             filter_parameters = {"filter_parameters": base64_json_filter_parameters}
+        if slim:
+            slim = {"slim": "true"}
         if query_parameters := urllib.parse.urlencode({**params, **fields, **filter_parameters, **slim}):
             url += f"?{query_parameters}"
         return url
@@ -250,11 +252,9 @@ class BaseAPIClient(APIClient):
                 except Exception as exc:
                     print('%r generated an exception: %s' % (url, exc))
 
-        return [
-            self.trs_object_class(
+        return [self.trs_object_class(
                 data=result,
                 api_client=self,
                 lazy=False,
                 object_id=result["id"]
-            ) for result in results
-        ]
+            ) for page in results for result in page["results"]]
