@@ -130,3 +130,9 @@ class TRSAPIClient:
             *args,
             **kwargs
         )
+        self.user_profiles = users.UserProfileAPIClient(
+            token=token,
+            timeout=timeout,
+            *args,
+            **kwargs
+        )

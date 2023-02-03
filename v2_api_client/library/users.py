@@ -34,3 +34,7 @@ class UsersAPIClient(BaseAPIClient):
 
 class TwoFactorAuthsAPIClient(BaseAPIClient):
     base_endpoint = "two_factor_auths"
+
+
+class UserProfileAPIClient(BaseAPIClient):
+    base_endpoint = "user_profiles"

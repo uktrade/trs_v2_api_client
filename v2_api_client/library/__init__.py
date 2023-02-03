@@ -253,8 +253,8 @@ class BaseAPIClient(APIClient):
                     print('%r generated an exception: %s' % (url, exc))
 
         return [self.trs_object_class(
-                data=result,
+                data=each,
                 api_client=self,
                 lazy=False,
-                object_id=result["id"]
-            ) for page in results for result in page["results"]]
+                object_id=each["id"]
+            ) for each in results]

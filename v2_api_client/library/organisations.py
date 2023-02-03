@@ -41,14 +41,6 @@ class OrganisationAPIClient(BaseAPIClient):
     base_endpoint = "organisations"
     trs_object_class = OrganisationObject
 
-    def _get_many(self, url):
-        """Fetches all organisations concurrently using the Python ThreadPoolExecutor with a paginated API endpoint"""
-        response = self.get(url)
-        pages = response["total_pages"]
-
-        URLS = [f"{url}?page={number}" for number in range(1, pages + 1)]
-        return self.get_concurrently(URLS)
-
     def get_organisations_by_company_name(self, company_name, **kwargs):
         return self._get_many(self.url(
             f"{self.get_base_endpoint()}/search_by_company_name",
