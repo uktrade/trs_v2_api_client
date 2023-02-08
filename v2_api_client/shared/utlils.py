@@ -1,5 +1,6 @@
 from typing import Union
 
+import phonenumbers
 from django.conf import settings
 
 from v2_api_client.client import TRSAPIClient
@@ -40,3 +41,16 @@ def get_uploaded_loa_document(submission: dict) -> Union[dict, None]:
         if loa_document:
             return loa_document
     return None
+
+
+def is_phone_number_valid(country_code: str, phone_number: str) -> bool:
+    """Helper function to validate a phone number given a country code and phone number.
+
+    Returns True if the phone number is valid, else False."""
+    try:
+        phone_number_obj = phonenumbers.parse(phone_number, country_code)
+    except phonenumbers.phonenumberutil.NumberParseException:
+        return False
+    if not phonenumbers.is_valid_number(phone_number_obj):
+        return False
+    return True
