@@ -112,3 +112,9 @@ class TRSAPIClient:
             *args, 
             **kwargs
         )
+        self.organisation_users = organisations.OrganisationUserClient(
+            token=token,
+            timeout=timeout,
+            *args,
+            **kwargs
+        )
