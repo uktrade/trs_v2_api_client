@@ -1,5 +1,5 @@
 from v2_api_client.library import (
-    cases,
+    access, cases,
     contacts,
     documents,
     invititations,
@@ -112,7 +112,13 @@ class TRSAPIClient:
             *args, 
             **kwargs
         )
-        self.organisation_users = organisations.OrganisationUserClient(
+        self.organisation_users = organisations.OrganisationUserAPIClient(
+            token=token,
+            timeout=timeout,
+            *args,
+            **kwargs
+        )
+        self.user_cases = access.UserCaseAPIClient(
             token=token,
             timeout=timeout,
             *args,

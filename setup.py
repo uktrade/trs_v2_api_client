@@ -28,5 +28,6 @@ setup(
         'django-cache-memoize',
         'dotwiz',
         'python-dateutil'
+        'phonenumbers'
     ]
 )
