@@ -27,7 +27,7 @@ setup(
         'api-client',
         'django-cache-memoize',
         'dotwiz',
-        'python-dateutil'
-        'phonenumbers'
+        'python-dateutil',
+        'phonenumbers',
     ]
 )
