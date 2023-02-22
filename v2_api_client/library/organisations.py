@@ -63,5 +63,5 @@ class OrganisationCaseRoleAPIClient(BaseAPIClient):
         }))
 
 
-class OrganisationUserClient(BaseAPIClient):
+class OrganisationUserAPIClient(BaseAPIClient):
     base_endpoint = "organisation_users"
