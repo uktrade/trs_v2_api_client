@@ -124,4 +124,4 @@ class TRSAPIClient:
             *args,
             **kwargs
         )
-        self.healthcheck = healthcheck.get_status()
+        self.healthcheck = healthcheck.get_status
