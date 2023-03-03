@@ -106,3 +106,7 @@ class OrganisationMergeRecordAPIClient(BaseAPIClient):
 
 class DuplicateOrganisationMergeAPIClient(BaseAPIClient):
     base_endpoint = "duplicate_organisation_merges"
+
+
+class OrganisationUserAPIClient(BaseAPIClient):
+    base_endpoint = "organisation_users"
