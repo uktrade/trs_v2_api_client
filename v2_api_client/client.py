@@ -6,7 +6,7 @@ from v2_api_client.library import (
     organisations,
     submissions,
     users,
-    generic
+    generic, healthcheck
 )
 
 
@@ -124,3 +124,4 @@ class TRSAPIClient:
             *args,
             **kwargs
         )
+        self.healthcheck = healthcheck.get_status
