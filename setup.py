@@ -29,5 +29,6 @@ setup(
         'dotwiz',
         'python-dateutil',
         'phonenumbers',
+        'pikepdf',
     ]
 )
