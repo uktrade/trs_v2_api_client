@@ -30,5 +30,6 @@ setup(
         'python-dateutil',
         'phonenumbers',
         'pikepdf',
+        'python-docx',
     ]
 )
