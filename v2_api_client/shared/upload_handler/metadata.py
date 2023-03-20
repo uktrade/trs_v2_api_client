@@ -1,8 +1,9 @@
 import io
 from abc import abstractmethod, ABC
-from docx import Document
 
 import pikepdf
+from docx import Document
+from openpyxl import load_workbook
 
 
 class Extractor:
@@ -14,12 +15,35 @@ class Extractor:
             return PDFExtractor().extract(data)
         if file_format == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
             return DOCXExtractor().extract(data)
+        if file_format == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+            return XLSXExtractor().extract(data)
 
 
 class BaseExtractMetaData(ABC):
     @abstractmethod
     def extract(self, data) -> io.BytesIO:
         raise NotImplementedError()
+
+
+class XLSXExtractor(BaseExtractMetaData):
+    def extract(self, data) -> io.BytesIO:
+        xlsx = load_workbook(data)
+
+        fields = [
+            attr
+            for attr in dir(xlsx.properties)
+            if isinstance(getattr(xlsx.properties, attr), str)
+            and not attr.startswith("_")
+            and not attr == "tagname"
+            and not attr == "namespace"
+        ]
+
+        for field in fields:
+            setattr(xlsx.properties, field, "")
+
+        xlsx.save(data)
+
+        return data
 
 
 class DOCXExtractor(BaseExtractMetaData):
@@ -29,7 +53,8 @@ class DOCXExtractor(BaseExtractMetaData):
         fields = [
             attr
             for attr in dir(docx.core_properties)
-            if isinstance(getattr(docx.core_properties, attr), str) and not attr.startswith("_")
+            if isinstance(getattr(docx.core_properties, attr), str)
+            and not attr.startswith("_")
         ]
 
         for field in fields:

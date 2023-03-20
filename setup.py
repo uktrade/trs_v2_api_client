@@ -31,5 +31,6 @@ setup(
         'phonenumbers',
         'pikepdf',
         'python-docx',
+        'openpyxl',
     ]
 )
