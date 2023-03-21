@@ -154,10 +154,11 @@ class DocumentMetadataTest(unittest.TestCase):
         self.xlsx_document = Extractor()
 
     def create_odt_document(self):
-        temporary_file_descriptor, self.odt_file = tempfile.mkstemp(dir=os.path.dirname("fixtures/sample.odt"))
+        odt_filepath = os.path.join(os.path.dirname(__file__), "fixtures/sample.odt")
+        temporary_file_descriptor, self.odt_file = tempfile.mkstemp(dir=os.path.dirname(odt_filepath))
         os.close(temporary_file_descriptor)
 
-        with zipfile.ZipFile("fixtures/sample.odt", "r") as input_odf:
+        with zipfile.ZipFile(odt_filepath, "r") as input_odf:
             with zipfile.ZipFile(self.odt_file, 'w') as output_odf:
                 for file in input_odf.infolist():
                     if file.filename != "meta.xml":
