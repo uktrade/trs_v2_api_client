@@ -32,5 +32,6 @@ setup(
         'pikepdf',
         'python-docx',
         'openpyxl',
+        'lxml',
     ]
 )

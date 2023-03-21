@@ -1,8 +1,11 @@
 import os
+import tempfile
 import unittest
+import zipfile
 
 import pikepdf
 from docx import Document
+from lxml import etree
 from openpyxl import Workbook, load_workbook
 
 from v2_api_client.shared.upload_handler.metadata import Extractor
@@ -16,11 +19,13 @@ class DocumentMetadataTest(unittest.TestCase):
         self.create_pdf_document()
         self.create_docx_document()
         self.create_xlsx_document()
+        self.create_odt_document()
 
     def tearDown(self) -> None:
         os.remove(self.pdf_file)
         os.remove(self.docx_file)
         os.remove(self.xlsx_file)
+        os.remove(self.odt_file)
 
     def test_instantiate_document_metadata(self):
         self.assertIsInstance(self.pdf_document, Extractor)
@@ -85,6 +90,35 @@ class DocumentMetadataTest(unittest.TestCase):
             self.assertNotIn("TRA", getattr(metadata, field))
             self.assertNotIn("Extract Document Metadata", getattr(metadata, field))
 
+    def test_extract_odt_metadata(self):
+        with zipfile.ZipFile(self.odt_file, "r") as input_odf:
+            for files in input_odf.infolist():
+                if files.filename == "meta.xml":
+                    root = etree.parse(input_odf.open("meta.xml")).getroot()
+
+                    for fields in root[0]:
+                        if fields.tag == "creator":
+                            self.assertEqual("TRA", fields.text)
+                        if fields.tag == "title":
+                            self.assertEqual("Extract Document Metadata", fields.text)
+
+        with open(self.odt_file, "rb") as file:
+            raw_data = file.read()
+            content_type = "application/vnd.oasis.opendocument.text"
+
+            sanitised_data = self.odt_document(raw_data, content_type)
+
+            with zipfile.ZipFile(sanitised_data, "r") as input_odf:
+                for files in input_odf.infolist():
+                    if files.filename == "meta.xml":
+                        root = etree.parse(input_odf.open("meta.xml")).getroot()
+
+                        for fields in root[0]:
+                            if fields.tag == "creator":
+                                self.assertNotEqual("TRA", fields.text)
+                            if fields.tag == "title":
+                                self.assertNotEqual("Extract Document Metadata", fields.text)
+
     def create_pdf_document(self):
         self.pdf = pikepdf.new()
 
@@ -118,3 +152,28 @@ class DocumentMetadataTest(unittest.TestCase):
         self.xlsx.save(self.xlsx_file)
 
         self.xlsx_document = Extractor()
+
+    def create_odt_document(self):
+        temporary_file_descriptor, self.odt_file = tempfile.mkstemp(dir=os.path.dirname("fixtures/sample.odt"))
+        os.close(temporary_file_descriptor)
+
+        with zipfile.ZipFile("fixtures/sample.odt", "r") as input_odf:
+            with zipfile.ZipFile(self.odt_file, 'w') as output_odf:
+                for file in input_odf.infolist():
+                    if file.filename != "meta.xml":
+                        output_odf.writestr(file, input_odf.read(file.filename))
+                    else:
+                        root = etree.parse(input_odf.open("meta.xml")).getroot()
+
+                        creator = etree.SubElement(root[0], "creator")
+                        title = etree.SubElement(root[0], "title")
+
+                        creator.text = self.AUTHOR
+                        title.text = self.TITLE
+
+                        metadata = etree.tostring(root)
+
+        with zipfile.ZipFile(self.odt_file, "a", zipfile.ZIP_DEFLATED) as zf:
+            zf.writestr("meta.xml", metadata)
+
+        self.odt_document = Extractor()
