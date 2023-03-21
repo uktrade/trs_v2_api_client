@@ -1,8 +1,10 @@
 import io
+import zipfile
 from abc import abstractmethod, ABC
 
 import pikepdf
 from docx import Document
+from lxml import etree
 from openpyxl import load_workbook
 
 
@@ -17,12 +19,40 @@ class Extractor:
             return DOCXExtractor().extract(data)
         if file_format == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
             return XLSXExtractor().extract(data)
+        if file_format == "application/vnd.oasis.opendocument.text":
+            return ODTExtractor().extract(data)
 
 
 class BaseExtractMetaData(ABC):
     @abstractmethod
     def extract(self, data) -> io.BytesIO:
         raise NotImplementedError()
+
+
+class ODTExtractor(BaseExtractMetaData):
+    def extract(self, data):
+        sanitised_data = io.BytesIO()
+        tags = ["creator", "title", "description", "subject"]
+
+        with zipfile.ZipFile(data, "r") as input_odf:
+            with zipfile.ZipFile(sanitised_data, 'w') as output_odf:
+                output_odf.comment = input_odf.comment  # preserve the comment
+                for file in input_odf.infolist():
+                    if file.filename != "meta.xml":
+                        output_odf.writestr(file, input_odf.read(file.filename))
+                    else:
+                        root = etree.parse(input_odf.open("meta.xml")).getroot()
+
+                        for fields in root[0]:
+                            if any([field in fields.tag for field in tags]):
+                                fields.text = ""
+
+                        metadata = etree.tostring(root)
+
+        with zipfile.ZipFile(sanitised_data, "a", zipfile.ZIP_DEFLATED) as zf:
+            zf.writestr("meta.xml", metadata)
+
+        return sanitised_data
 
 
 class XLSXExtractor(BaseExtractMetaData):
