@@ -1,6 +1,5 @@
 import os
 import tempfile
-import unittest
 import zipfile
 
 import pikepdf
@@ -11,28 +10,28 @@ from openpyxl import Workbook, load_workbook
 from v2_api_client.shared.upload_handler.metadata import Extractor
 
 
-class DocumentMetadataTest(unittest.TestCase):
+class TestDocumentMetadata:
     AUTHOR = "TRA"
     TITLE = "Extract Document Metadata"
 
-    def setUp(self) -> None:
+    def setup_method(self) -> None:
         self.create_pdf_document()
         self.create_docx_document()
         self.create_xlsx_document()
-        self.create_odt_document()
+        self.create_odt_document("odt")
 
-    def tearDown(self) -> None:
+    def teardown_method(self) -> None:
         os.remove(self.pdf_file)
         os.remove(self.docx_file)
         os.remove(self.xlsx_file)
         os.remove(self.odt_file)
 
     def test_instantiate_document_metadata(self):
-        self.assertIsInstance(self.pdf_document, Extractor)
+        assert isinstance(self.pdf_document, Extractor)
 
     def test_extract_pdf_metadata(self):
-        self.assertEqual(["TRA"], self.pdf.open_metadata()["dc:creator"])
-        self.assertEqual("Extract Document Metadata", self.pdf.open_metadata()["dc:title"])
+        assert ["TRA"] == self.pdf.open_metadata()["dc:creator"]
+        assert "Extract Document Metadata" == self.pdf.open_metadata()["dc:title"]
 
         with open(self.pdf_file, "rb") as file:
             raw_data = file.read()
@@ -41,12 +40,12 @@ class DocumentMetadataTest(unittest.TestCase):
             sanitised_data = self.pdf_document(raw_data, content_type)
             metadata = str(pikepdf.open(sanitised_data).open_metadata())
 
-            self.assertNotIn("TRA", metadata)
-            self.assertNotIn("Extract Document Metadata", metadata)
+            assert "TRA" not in metadata
+            assert "Extract Document Metadata" not in metadata
 
     def test_extract_docx_metadata(self):
-        self.assertEqual("TRA", self.docx.core_properties.author)
-        self.assertEqual("Extract Document Metadata", self.docx.core_properties.title)
+        assert self.docx.core_properties.author == "TRA"
+        assert self.docx.core_properties.title == "Extract Document Metadata"
 
         with open(self.docx_file, "rb") as file:
             raw_data = file.read()
@@ -63,12 +62,12 @@ class DocumentMetadataTest(unittest.TestCase):
             ]
 
             for field in fields:
-                self.assertNotIn("TRA", getattr(metadata, field))
-                self.assertNotIn("Extract Document Metadata", getattr(metadata, field))
+                assert "TRA" not in getattr(metadata, field)
+                assert "Extract Document Metadata" not in getattr(metadata, field)
 
     def test_extract_xlsx_metadata(self):
-        self.assertEqual("TRA", self.xlsx.properties.creator)
-        self.assertEqual("Extract Document Metadata", self.xlsx.properties.title)
+        assert self.xlsx.properties.creator == "TRA"
+        assert self.xlsx.properties.title == "Extract Document Metadata"
 
         with open(self.xlsx_file, "rb") as file:
             raw_data = file.read()
@@ -87,8 +86,8 @@ class DocumentMetadataTest(unittest.TestCase):
             ]
 
         for field in fields:
-            self.assertNotIn("TRA", getattr(metadata, field))
-            self.assertNotIn("Extract Document Metadata", getattr(metadata, field))
+            assert "TRA" not in getattr(metadata, field)
+            assert "Extract Document Metadata" not in getattr(metadata, field)
 
     def test_extract_odt_metadata(self):
         with zipfile.ZipFile(self.odt_file, "r") as input_odf:
@@ -98,9 +97,9 @@ class DocumentMetadataTest(unittest.TestCase):
 
                     for fields in root[0]:
                         if fields.tag == "creator":
-                            self.assertEqual("TRA", fields.text)
+                            assert fields.text == "TRA"
                         if fields.tag == "title":
-                            self.assertEqual("Extract Document Metadata", fields.text)
+                            assert fields.text == "Extract Document Metadata"
 
         with open(self.odt_file, "rb") as file:
             raw_data = file.read()
@@ -115,9 +114,9 @@ class DocumentMetadataTest(unittest.TestCase):
 
                         for fields in root[0]:
                             if fields.tag == "creator":
-                                self.assertNotEqual("TRA", fields.text)
+                                assert fields.text != "TRA"
                             if fields.tag == "title":
-                                self.assertNotEqual("Extract Document Metadata", fields.text)
+                                assert fields.text != "Extract Document Metadata"
 
     def create_pdf_document(self):
         self.pdf = pikepdf.new()
@@ -153,8 +152,8 @@ class DocumentMetadataTest(unittest.TestCase):
 
         self.xlsx_document = Extractor()
 
-    def create_odt_document(self):
-        odt_filepath = os.path.join(os.path.dirname(__file__), "fixtures/sample.odt")
+    def create_odt_document(self, file_type):
+        odt_filepath = os.path.join(os.path.dirname(__file__), f"fixtures/sample.{file_type}")
         temporary_file_descriptor, self.odt_file = tempfile.mkstemp(dir=os.path.dirname(odt_filepath))
         os.close(temporary_file_descriptor)
 
