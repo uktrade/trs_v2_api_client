@@ -17,22 +17,22 @@ class TestDocumentMetadata:
 
     @pytest.fixture
     def document(self, request):
-        fields = {
+        file_types = {
             'pdf': self.create_pdf_document,
             'docx': self.create_docx_document,
             'xlsx': self.create_xlsx_document,
             'odt': self.create_odt_document
         }
 
-        for key in fields:
-            if key == request.param[0]:
+        for file_type in file_types:
+            if file_type == request.param[0]:
                 if len(request.param) > 1:
-                    fields[key](request.param[1])
+                    file_types[file_type](request.param[1])
                 else:
-                    fields[key]()
+                    file_types[file_type]()
 
                 yield
-                os.remove(getattr(self, f"{key}_file"))
+                os.remove(getattr(self, f"{file_type}_file"))
 
     @pytest.mark.parametrize("document", [["pdf"]], indirect=True)
     def test_instantiate_document_metadata(self, document):
