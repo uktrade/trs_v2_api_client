@@ -3,6 +3,7 @@ import tempfile
 import zipfile
 
 import pikepdf
+import pytest
 from docx import Document
 from lxml import etree
 from openpyxl import Workbook, load_workbook
@@ -14,22 +15,31 @@ class TestDocumentMetadata:
     AUTHOR = "TRA"
     TITLE = "Extract Document Metadata"
 
-    def setup_method(self) -> None:
-        self.create_pdf_document()
-        self.create_docx_document()
-        self.create_xlsx_document()
-        self.create_odt_document("odt")
+    @pytest.fixture
+    def document(self, request):
+        fields = {
+            'pdf': self.create_pdf_document,
+            'docx': self.create_docx_document,
+            'xlsx': self.create_xlsx_document,
+            'odt': self.create_odt_document
+        }
 
-    def teardown_method(self) -> None:
-        os.remove(self.pdf_file)
-        os.remove(self.docx_file)
-        os.remove(self.xlsx_file)
-        os.remove(self.odt_file)
+        for key in fields:
+            if key == request.param[0]:
+                if len(request.param) > 1:
+                    fields[key](request.param[1])
+                else:
+                    fields[key]()
 
-    def test_instantiate_document_metadata(self):
+                yield
+                os.remove(getattr(self, f"{key}_file"))
+
+    @pytest.mark.parametrize("document", [["pdf"]], indirect=True)
+    def test_instantiate_document_metadata(self, document):
         assert isinstance(self.pdf_document, Extractor)
 
-    def test_extract_pdf_metadata(self):
+    @pytest.mark.parametrize("document", [["pdf"]], indirect=True)
+    def test_extract_pdf_metadata(self, document):
         assert ["TRA"] == self.pdf.open_metadata()["dc:creator"]
         assert "Extract Document Metadata" == self.pdf.open_metadata()["dc:title"]
 
@@ -43,7 +53,8 @@ class TestDocumentMetadata:
             assert "TRA" not in metadata
             assert "Extract Document Metadata" not in metadata
 
-    def test_extract_docx_metadata(self):
+    @pytest.mark.parametrize("document", [["docx"]], indirect=True)
+    def test_extract_docx_metadata(self, document):
         assert self.docx.core_properties.author == "TRA"
         assert self.docx.core_properties.title == "Extract Document Metadata"
 
@@ -65,7 +76,8 @@ class TestDocumentMetadata:
                 assert "TRA" not in getattr(metadata, field)
                 assert "Extract Document Metadata" not in getattr(metadata, field)
 
-    def test_extract_xlsx_metadata(self):
+    @pytest.mark.parametrize("document", [["xlsx"]], indirect=True)
+    def test_extract_xlsx_metadata(self, document):
         assert self.xlsx.properties.creator == "TRA"
         assert self.xlsx.properties.title == "Extract Document Metadata"
 
@@ -89,7 +101,8 @@ class TestDocumentMetadata:
             assert "TRA" not in getattr(metadata, field)
             assert "Extract Document Metadata" not in getattr(metadata, field)
 
-    def test_extract_odt_metadata(self):
+    @pytest.mark.parametrize("document", [["odt", "odt"]], indirect=True)
+    def test_extract_odt_metadata(self, document):
         with zipfile.ZipFile(self.odt_file, "r") as input_odf:
             for files in input_odf.infolist():
                 if files.filename == "meta.xml":
