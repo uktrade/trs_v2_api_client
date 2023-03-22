@@ -21,7 +21,7 @@ class TestDocumentMetadata:
             'pdf': self.create_pdf_document,
             'docx': self.create_docx_document,
             'xlsx': self.create_xlsx_document,
-            'odt': self.create_odt_document
+            'odf': self.create_odf_document
         }
 
         for file_type in file_types:
@@ -101,9 +101,16 @@ class TestDocumentMetadata:
             assert "TRA" not in getattr(metadata, field)
             assert "Extract Document Metadata" not in getattr(metadata, field)
 
-    @pytest.mark.parametrize("document", [["odt", "odt"]], indirect=True)
-    def test_extract_odt_metadata(self, document):
-        with zipfile.ZipFile(self.odt_file, "r") as input_odf:
+    @pytest.mark.parametrize(
+        'document, content_type',
+        [
+            (["odf", "odt"], "application/vnd.oasis.opendocument.text"),
+            (["odf", "ods"], "application/vnd.oasis.opendocument.spreadsheet"),
+        ],
+        indirect=['document']
+    )
+    def test_extract_odf_metadata(self, document, content_type):
+        with zipfile.ZipFile(self.odf_file, "r") as input_odf:
             for files in input_odf.infolist():
                 if files.filename == "meta.xml":
                     root = etree.parse(input_odf.open("meta.xml")).getroot()
@@ -114,11 +121,10 @@ class TestDocumentMetadata:
                         if fields.tag == "title":
                             assert fields.text == "Extract Document Metadata"
 
-        with open(self.odt_file, "rb") as file:
+        with open(self.odf_file, "rb") as file:
             raw_data = file.read()
-            content_type = "application/vnd.oasis.opendocument.text"
 
-            sanitised_data = self.odt_document(raw_data, content_type)
+            sanitised_data = self.odf_document(raw_data, content_type)
 
             with zipfile.ZipFile(sanitised_data, "r") as input_odf:
                 for files in input_odf.infolist():
@@ -165,13 +171,13 @@ class TestDocumentMetadata:
 
         self.xlsx_document = Extractor()
 
-    def create_odt_document(self, file_type):
-        odt_filepath = os.path.join(os.path.dirname(__file__), f"fixtures/sample.{file_type}")
-        temporary_file_descriptor, self.odt_file = tempfile.mkstemp(dir=os.path.dirname(odt_filepath))
+    def create_odf_document(self, file_type):
+        odf_filepath = os.path.join(os.path.dirname(__file__), f"fixtures/sample.{file_type}")
+        temporary_file_descriptor, self.odf_file = tempfile.mkstemp(dir=os.path.dirname(odf_filepath))
         os.close(temporary_file_descriptor)
 
-        with zipfile.ZipFile(odt_filepath, "r") as input_odf:
-            with zipfile.ZipFile(self.odt_file, 'w') as output_odf:
+        with zipfile.ZipFile(odf_filepath, "r") as input_odf:
+            with zipfile.ZipFile(self.odf_file, 'w') as output_odf:
                 for file in input_odf.infolist():
                     if file.filename != "meta.xml":
                         output_odf.writestr(file, input_odf.read(file.filename))
@@ -186,7 +192,7 @@ class TestDocumentMetadata:
 
                         metadata = etree.tostring(root)
 
-        with zipfile.ZipFile(self.odt_file, "a", zipfile.ZIP_DEFLATED) as zf:
+        with zipfile.ZipFile(self.odf_file, "a", zipfile.ZIP_DEFLATED) as zf:
             zf.writestr("meta.xml", metadata)
 
-        self.odt_document = Extractor()
+        self.odf_document = Extractor()
