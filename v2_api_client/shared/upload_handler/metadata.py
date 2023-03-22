@@ -19,8 +19,11 @@ class Extractor:
             return DOCXExtractor().extract(data)
         if file_format == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
             return XLSXExtractor().extract(data)
-        if file_format == "application/vnd.oasis.opendocument.text":
-            return ODTExtractor().extract(data)
+        if (
+                file_format == "application/vnd.oasis.opendocument.text" or
+                file_format == "application/vnd.oasis.opendocument.spreadsheet"
+        ):
+            return ODFExtractor().extract(data)
 
 
 class BaseExtractMetaData(ABC):
@@ -29,7 +32,7 @@ class BaseExtractMetaData(ABC):
         raise NotImplementedError()
 
 
-class ODTExtractor(BaseExtractMetaData):
+class ODFExtractor(BaseExtractMetaData):
     def extract(self, data):
         sanitised_data = io.BytesIO()
         tags = ["creator", "title", "description", "subject"]
