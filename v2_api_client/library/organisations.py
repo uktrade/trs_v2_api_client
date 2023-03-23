@@ -98,6 +98,21 @@ class OrganisationMergeRecordObject(TRSObject):
             **kwargs
         )
 
+    def reset(self, **kwargs):
+        """Resets all potential duplicates to their fresh state, pending and all attributes forgotten"""
+        return self.custom_action(
+            "patch",
+            "reset",
+            **kwargs
+        )
+
+    def get_duplicate_cases(self, **kwargs):
+        return self.custom_action(
+            "get",
+            "get_duplicate_cases",
+            **kwargs
+        )
+
 
 class OrganisationMergeRecordAPIClient(BaseAPIClient):
     base_endpoint = "organisation_merge_records"
@@ -106,7 +121,6 @@ class OrganisationMergeRecordAPIClient(BaseAPIClient):
 
 class DuplicateOrganisationMergeAPIClient(BaseAPIClient):
     base_endpoint = "duplicate_organisation_merges"
-
 
 class OrganisationUserAPIClient(BaseAPIClient):
     base_endpoint = "organisation_users"
