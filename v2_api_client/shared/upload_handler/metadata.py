@@ -25,6 +25,8 @@ class Extractor:
         ):
             return ODFExtractor().extract(data)
 
+        return data
+
 
 class BaseExtractMetaData(ABC):
     @abstractmethod
