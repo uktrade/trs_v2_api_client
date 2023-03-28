@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import concurrent.futures
 import json
 import urllib
 from typing import Union
@@ -49,6 +50,7 @@ class BaseAPIClient(APIClient):
             arg: Union[str, UUID, dict, None] = None,
             fields: list[str] = None,
             params: dict = None,
+            slim: bool = False,
             **kwargs
     ) -> Union[TRSObject, list[TRSObject]]:
         """
@@ -64,6 +66,7 @@ class BaseAPIClient(APIClient):
         fields : A list of fields you want returned by the API
         params : a dict of query parameters to append to the URL
         filter : a dict of query parameters to append to the URL
+        slim : True if you want to return a slim object (no additional fields on the serializer)
 
         Returns
         -------
@@ -80,19 +83,19 @@ class BaseAPIClient(APIClient):
             # additional filters to apply to the queryset returned, whereby the argument name is
             # the name of the model field, and the argument value is the desired value you want to
             # retrieve
-            url = self.url(self.get_base_endpoint(), fields=fields, filter_parameters=kwargs)
+            url = self.url(self.get_base_endpoint(), fields=fields, filter_parameters=kwargs, slim=slim)
             return self._get_many(url)
         if arg is None:
             # it's called with no args, return all
-            url = self.url(self.get_base_endpoint(), fields=fields, params=params)
+            url = self.url(self.get_base_endpoint(), fields=fields, params=params, slim=slim)
             return self._get_many(url)
         if isinstance(arg, str) or isinstance(arg, UUID):
             # it's called with a str or UUID ID, retrieve one instance
-            url = self.url(self.get_retrieve_endpoint(arg), fields=fields, params=params)
+            url = self.url(self.get_retrieve_endpoint(arg), fields=fields, params=params, slim=slim)
             return self._get(url=url, object_id=arg)
         if isinstance(arg, dict):
             # it's called with a dict, create and retrieve one instance
-            url = self.url(self.get_base_endpoint(), fields=fields, params=params)
+            url = self.url(self.get_base_endpoint(), fields=fields, params=params, slim=slim)
             return self._post(url=url, data=arg)
 
     def get_trs_object_class(self):
@@ -109,6 +112,7 @@ class BaseAPIClient(APIClient):
             path: str,
             fields: list = None,
             params: dict = None,
+            slim: bool = False,
             filter_parameters: dict = None
     ) -> str:
         """
@@ -120,6 +124,7 @@ class BaseAPIClient(APIClient):
         fields : what fields you want returned by the API as defined by the "query" GET parameter
         params : a dictionary of query parameters you want appended to the URL
         filter_parameters : a dictionary of additional key/value parameters to filter the queryset with
+        slim : True if you want to return a slim object (no additional fields on the serializer)
 
         Returns
         -------
@@ -128,6 +133,7 @@ class BaseAPIClient(APIClient):
         fields = fields if fields else dict()
         params = params if params else dict()
         filter_parameters = filter_parameters if filter_parameters else dict()
+        slim = {}
 
         url = f"{settings.API_BASE_URL}/api/v2/{path}/"
         if fields:
@@ -138,9 +144,10 @@ class BaseAPIClient(APIClient):
             # this seems nicer
             base64_json_filter_parameters = base64.urlsafe_b64encode(json.dumps(filter_parameters, default=str).encode()).decode()
             filter_parameters = {"filter_parameters": base64_json_filter_parameters}
-        if fields or params or filter_parameters:
-            if query_parameters := urllib.parse.urlencode({**params, **fields, **filter_parameters}):
-                url += f"?{query_parameters}"
+        if slim:
+            slim = {"slim": "true"}
+        if query_parameters := urllib.parse.urlencode({**params, **fields, **filter_parameters, **slim}):
+            url += f"?{query_parameters}"
         return url
 
     def get_base_endpoint(self):
@@ -230,3 +237,24 @@ class BaseAPIClient(APIClient):
                 object_id=each["id"]
             ) for each in self.get(url)
         ]
+
+    def get_concurrently(self, urls, max_workers=5):
+        """Fetches a list of URLs concurrently to improve performance. Returns a list of results"""
+        results = []
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            # Start the load operations and mark each future with its URL
+            future_to_url = {executor.submit(self.get, url): url for url in urls}
+
+            for future in concurrent.futures.as_completed(future_to_url):
+                url = future_to_url[future]
+                try:
+                    results.append(future.result())
+                except Exception as exc:
+                    print('%r generated an exception: %s' % (url, exc))
+
+        return [self.trs_object_class(
+                data=each,
+                api_client=self,
+                lazy=False,
+                object_id=each["id"]
+            ) for each in results]

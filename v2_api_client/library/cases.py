@@ -18,7 +18,3 @@ class CasesAPIClient(BaseAPIClient):
 
     def open_to_roi(self):
         return self._get_many(self.url(self.get_base_endpoint(), params={"open_to_roi": True}))
-
-
-"{api_url}/v2/submissions"
-"{api_url}/v2/cases"
