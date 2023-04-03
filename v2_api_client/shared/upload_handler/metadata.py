@@ -15,13 +15,19 @@ class Extractor:
 
         if file_format == "application/pdf":
             return PDFExtractor().extract(data)
-        if file_format == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+        if (
+            file_format
+            == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        ):
             return DOCXExtractor().extract(data)
-        if file_format == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+        if (
+            file_format
+            == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        ):
             return XLSXExtractor().extract(data)
         if (
-                file_format == "application/vnd.oasis.opendocument.text" or
-                file_format == "application/vnd.oasis.opendocument.spreadsheet"
+            file_format == "application/vnd.oasis.opendocument.text"
+            or file_format == "application/vnd.oasis.opendocument.spreadsheet"
         ):
             return ODFExtractor().extract(data)
 
@@ -40,7 +46,7 @@ class ODFExtractor(BaseExtractMetaData):
         tags = ["creator", "title", "description", "subject"]
 
         with zipfile.ZipFile(data, "r") as input_odf:
-            with zipfile.ZipFile(sanitised_data, 'w') as output_odf:
+            with zipfile.ZipFile(sanitised_data, "w") as output_odf:
                 output_odf.comment = input_odf.comment  # preserve the comment
                 for file in input_odf.infolist():
                     if file.filename != "meta.xml":
@@ -83,21 +89,39 @@ class XLSXExtractor(BaseExtractMetaData):
 
 class DOCXExtractor(BaseExtractMetaData):
     def extract(self, data) -> io.BytesIO:
-        docx = Document(data)
-
-        fields = [
-            attr
-            for attr in dir(docx.core_properties)
-            if isinstance(getattr(docx.core_properties, attr), str)
-            and not attr.startswith("_")
-        ]
-
-        for field in fields:
-            setattr(docx.core_properties, field, "")
-
-        docx.save(data)
-
-        return data
+        sanitised_data = io.BytesIO()
+        with zipfile.ZipFile(data, "r") as input_doc:
+            with zipfile.ZipFile(sanitised_data, "w") as output_doc:
+                for sub_file in input_doc.infolist():
+                    if sub_file.filename != "docProps/core.xml":
+                        output_doc.writestr(sub_file, input_doc.read(sub_file.filename))
+                    else:
+                        core_properties = etree.fromstring(
+                            input_doc.read(sub_file.filename)
+                        )
+                        potentially_sensitive_fields = [
+                            child
+                            for child in core_properties.getchildren()
+                            if any(
+                                [
+                                    field in child.tag
+                                    for field in [
+                                        "creator",
+                                        "comments",
+                                        "lastModifiedBy",
+                                        "manager",
+                                        "identifier",
+                                    ]
+                                ]
+                            )
+                        ]
+                        for field in potentially_sensitive_fields:
+                            field.text = ""
+                        sanitised_core_properties = etree.tostring(core_properties)
+                        output_doc.writestr(
+                            sub_file.filename, sanitised_core_properties
+                        )
+        return sanitised_data
 
 
 class PDFExtractor(BaseExtractMetaData):

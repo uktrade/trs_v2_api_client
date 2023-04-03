@@ -9,7 +9,7 @@ class ContactObject(TRSObject):
             "change_organisation",
             data={
                 "organisation_id": organisation_id,
-            }
+            },
         )
 
     def add_to_case(self, case_id, organisation_id=None, primary=False):
@@ -20,7 +20,7 @@ class ContactObject(TRSObject):
                 "case_id": case_id,
                 "organisation_id": organisation_id,
                 "primary": "yes" if primary else "no",
-            }
+            },
         )
 
 

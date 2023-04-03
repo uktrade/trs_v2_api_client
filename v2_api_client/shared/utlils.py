@@ -16,8 +16,9 @@ def get_loa_document_bundle() -> Union[dict, None]:
     # We've got all the TRS document bundles, let's find the LOA
     loa_document_bundle = next(
         filter(
-            lambda document_bundle: document_bundle["submission_type"] == "Letter of Authority"
-                                    and document_bundle["status"] == "LIVE",
+            lambda document_bundle: document_bundle["submission_type"]
+            == "Letter of Authority"
+            and document_bundle["status"] == "LIVE",
             trs_document_bundles,
         ),
         None,

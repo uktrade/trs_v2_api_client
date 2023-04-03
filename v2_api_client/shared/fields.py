@@ -7,5 +7,5 @@ class RequiredYesNoRadioButton(NullBooleanField):
 
     def validate(self, value):
         if value is None:
-            raise ValidationError(self.error_messages['required'], code='required')
+            raise ValidationError(self.error_messages["required"], code="required")
         return super().validate(value)

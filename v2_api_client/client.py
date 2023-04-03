@@ -1,12 +1,14 @@
 from v2_api_client.library import (
-    access, cases,
+    access,
+    cases,
     contacts,
     documents,
     invititations,
     organisations,
     submissions,
     users,
-    generic, healthcheck
+    generic,
+    healthcheck,
 )
 
 
@@ -32,120 +34,65 @@ class TRSAPIClient:
     def __init__(self, *args, **kwargs):
         token = kwargs.pop("token")
         timeout = kwargs.pop("timeout", None)
-        
+
         super().__init__(*args, **kwargs)
         self.submissions = submissions.SubmissionsAPIClient(
-            token=token,
-            timeout=timeout,
-            *args,
-            **kwargs
+            token=token, timeout=timeout, *args, **kwargs
         )
-        self.users = users.UsersAPIClient(
-            token=token, 
-            timeout=timeout, 
-            *args, 
-            **kwargs
-        )
-        self.cases = cases.CasesAPIClient(
-            token=token, 
-            timeout=timeout, 
-            *args, 
-            **kwargs
-        )
+        self.users = users.UsersAPIClient(token=token, timeout=timeout, *args, **kwargs)
+        self.cases = cases.CasesAPIClient(token=token, timeout=timeout, *args, **kwargs)
         self.documents = documents.DocumentsAPIClient(
-            token=token, 
-            timeout=timeout, 
-            *args, 
-            **kwargs
+            token=token, timeout=timeout, *args, **kwargs
         )
         self.document_bundles = documents.DocumentBundlesAPIClient(
-            token=token, 
-            timeout=timeout, 
-            *args, 
-            **kwargs
+            token=token, timeout=timeout, *args, **kwargs
         )
         self.invitations = invititations.InvitationsAPIClient(
-            token=token, 
-            timeout=timeout, 
-            *args, 
-            **kwargs
+            token=token, timeout=timeout, *args, **kwargs
         )
         self.organisations = organisations.OrganisationAPIClient(
-            token=token, 
-            timeout=timeout, 
-            *args, 
-            **kwargs
+            token=token, timeout=timeout, *args, **kwargs
         )
         self.contacts = contacts.ContactsAPIClient(
-            token=token, 
-            timeout=timeout, 
-            *args, 
-            **kwargs
+            token=token, timeout=timeout, *args, **kwargs
         )
         self.case_contacts = contacts.CaseContactsAPIClient(
-            token=token, 
-            timeout=timeout, 
-            *args, 
-            **kwargs
+            token=token, timeout=timeout, *args, **kwargs
         )
         self.two_factor_auths = users.TwoFactorAuthsAPIClient(
-            token=token, 
-            timeout=timeout, 
-            *args, 
-            **kwargs
+            token=token, timeout=timeout, *args, **kwargs
         )
         self.feature_flags = generic.FeatureFlagsAPIClient(
-            token=token, 
-            timeout=timeout, 
-            *args, 
-            **kwargs
+            token=token, timeout=timeout, *args, **kwargs
         )
         self.feedback = generic.FeedbackAPIClient(
-            token=token, 
-            timeout=timeout, 
-            *args, 
-            **kwargs
+            token=token, timeout=timeout, *args, **kwargs
         )
         self.organisation_case_roles = organisations.OrganisationCaseRoleAPIClient(
-            token=token, 
-            timeout=timeout, 
-            *args, 
-            **kwargs
+            token=token, timeout=timeout, *args, **kwargs
         )
-        self.organisation_merge_records = organisations.OrganisationMergeRecordAPIClient(
-            token=token,
-            timeout=timeout,
-            *args,
-            **kwargs
+        self.organisation_merge_records = (
+            organisations.OrganisationMergeRecordAPIClient(
+                token=token, timeout=timeout, *args, **kwargs
+            )
         )
-        self.duplicate_organisation_merges = organisations.DuplicateOrganisationMergeAPIClient(
-            token=token,
-            timeout=timeout,
-            *args,
-            **kwargs
+        self.duplicate_organisation_merges = (
+            organisations.DuplicateOrganisationMergeAPIClient(
+                token=token, timeout=timeout, *args, **kwargs
+            )
         )
-        self.submission_organisation_merge_records = submissions.SubmissionOrganisationMergeRecordAPIClient(
-            token=token,
-            timeout=timeout,
-            *args,
-            **kwargs
+        self.submission_organisation_merge_records = (
+            submissions.SubmissionOrganisationMergeRecordAPIClient(
+                token=token, timeout=timeout, *args, **kwargs
+            )
         )
         self.user_profiles = users.UserProfileAPIClient(
-            token=token,
-            timeout=timeout,
-            *args,
-            **kwargs
+            token=token, timeout=timeout, *args, **kwargs
         )
         self.organisation_users = organisations.OrganisationUserAPIClient(
-            token=token,
-            timeout=timeout,
-            *args,
-            **kwargs
+            token=token, timeout=timeout, *args, **kwargs
         )
         self.user_cases = access.UserCaseAPIClient(
-            token=token,
-            timeout=timeout,
-            *args,
-            **kwargs
+            token=token, timeout=timeout, *args, **kwargs
         )
         self.healthcheck = healthcheck.get_status

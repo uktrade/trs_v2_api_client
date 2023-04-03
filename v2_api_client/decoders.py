@@ -4,8 +4,10 @@ from dateutil import parser
 from dateutil.parser import ParserError
 from dotwiz import DotWiz
 
+
 class TRSObjectJSONDecoder(JSONDecoder):
     pass
+
 
 def encode(string):
     value = None

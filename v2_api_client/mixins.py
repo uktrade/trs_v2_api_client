@@ -4,7 +4,6 @@ from v2_api_client.client import TRSAPIClient
 
 
 class APIClientMixin:
-
     @property
     def client(self, *args, **kwargs) -> TRSAPIClient:
         """

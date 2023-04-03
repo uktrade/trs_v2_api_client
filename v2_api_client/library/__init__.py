@@ -22,14 +22,15 @@ class BaseAPIClient(APIClient):
     Uses singledispatchmethod to allow for dynamic instantiation depending on the type of arguments
     passed.
     """
+
     base_endpoint = None
     trs_object_class = TRSObject
 
     def __init__(
-            self,
-            response_handler=JsonResponseHandler,
-            error_handler=APIErrorHandler,
-            **kwargs
+        self,
+        response_handler=JsonResponseHandler,
+        error_handler=APIErrorHandler,
+        **kwargs,
     ):
         self.timeout = kwargs.pop("timeout", None)
         authentication_method = HeaderAuthentication(
@@ -42,16 +43,16 @@ class BaseAPIClient(APIClient):
             authentication_method=authentication_method,
             response_handler=response_handler,
             error_handler=error_handler,
-            **kwargs
+            **kwargs,
         )
 
     def __call__(
-            self,
-            arg: Union[str, UUID, dict, None] = None,
-            fields: list[str] = None,
-            params: dict = None,
-            slim: bool = False,
-            **kwargs
+        self,
+        arg: Union[str, UUID, dict, None] = None,
+        fields: list[str] = None,
+        params: dict = None,
+        slim: bool = False,
+        **kwargs,
     ) -> Union[TRSObject, list[TRSObject]]:
         """
         Can do the following:
@@ -83,19 +84,30 @@ class BaseAPIClient(APIClient):
             # additional filters to apply to the queryset returned, whereby the argument name is
             # the name of the model field, and the argument value is the desired value you want to
             # retrieve
-            url = self.url(self.get_base_endpoint(), fields=fields, filter_parameters=kwargs, slim=slim)
+            url = self.url(
+                self.get_base_endpoint(),
+                fields=fields,
+                filter_parameters=kwargs,
+                slim=slim,
+            )
             return self._get_many(url)
         if arg is None:
             # it's called with no args, return all
-            url = self.url(self.get_base_endpoint(), fields=fields, params=params, slim=slim)
+            url = self.url(
+                self.get_base_endpoint(), fields=fields, params=params, slim=slim
+            )
             return self._get_many(url)
         if isinstance(arg, str) or isinstance(arg, UUID):
             # it's called with a str or UUID ID, retrieve one instance
-            url = self.url(self.get_retrieve_endpoint(arg), fields=fields, params=params, slim=slim)
+            url = self.url(
+                self.get_retrieve_endpoint(arg), fields=fields, params=params, slim=slim
+            )
             return self._get(url=url, object_id=arg)
         if isinstance(arg, dict):
             # it's called with a dict, create and retrieve one instance
-            url = self.url(self.get_base_endpoint(), fields=fields, params=params, slim=slim)
+            url = self.url(
+                self.get_base_endpoint(), fields=fields, params=params, slim=slim
+            )
             return self._post(url=url, data=arg)
 
     def get_trs_object_class(self):
@@ -109,11 +121,11 @@ class BaseAPIClient(APIClient):
 
     @staticmethod
     def url(
-            path: str,
-            fields: list = None,
-            params: dict = None,
-            slim: bool = False,
-            filter_parameters: dict = None
+        path: str,
+        fields: list = None,
+        params: dict = None,
+        slim: bool = False,
+        filter_parameters: dict = None,
     ) -> str:
         """
         Helper function to generate URLs using the API_BASE_URL and path provided.
@@ -142,11 +154,15 @@ class BaseAPIClient(APIClient):
             # let's convert the filter_parameter dict into a json string and encode in base64, so we
             # can pass it over a URL (we could do this a different way with custom delimeters but
             # this seems nicer
-            base64_json_filter_parameters = base64.urlsafe_b64encode(json.dumps(filter_parameters, default=str).encode()).decode()
+            base64_json_filter_parameters = base64.urlsafe_b64encode(
+                json.dumps(filter_parameters, default=str).encode()
+            ).decode()
             filter_parameters = {"filter_parameters": base64_json_filter_parameters}
         if slim:
             slim = {"slim": "true"}
-        if query_parameters := urllib.parse.urlencode({**params, **fields, **filter_parameters, **slim}):
+        if query_parameters := urllib.parse.urlencode(
+            {**params, **fields, **filter_parameters, **slim}
+        ):
             url += f"?{query_parameters}"
         return url
 
@@ -172,7 +188,9 @@ class BaseAPIClient(APIClient):
             retrieve_url += f"/{extra_path}"
         return retrieve_url
 
-    def update(self, object_id: Union[str, UUID], data: dict, fields: list = None) -> TRSObject:
+    def update(
+        self, object_id: Union[str, UUID], data: dict, fields: list = None
+    ) -> TRSObject:
         """
         Updates a particular object.
 
@@ -187,12 +205,10 @@ class BaseAPIClient(APIClient):
         TRSObject
         """
         trs_object_class = self.get_trs_object_class()
-        data = self.patch(self.url(self.get_retrieve_endpoint(object_id), fields=fields), data=data)
-        return trs_object_class(
-            data=data,
-            api_client=self,
-            object_id=data["id"]
+        data = self.patch(
+            self.url(self.get_retrieve_endpoint(object_id), fields=fields), data=data
         )
+        return trs_object_class(data=data, api_client=self, object_id=data["id"])
 
     def delete_object(self, object_id: Union[str, UUID]):
         """
@@ -212,17 +228,14 @@ class BaseAPIClient(APIClient):
             data=data,
             api_client=self,
             object_id=data["id"],
-            retrieval_url=self.get_retrieve_endpoint(object_id=data["id"])
+            retrieval_url=self.get_retrieve_endpoint(object_id=data["id"]),
         )
 
     def _get(self, url: str, object_id: Union[str, UUID, None] = None):
         """Wraps GET requests to return a TRSObject"""
         trs_object_class = self.get_trs_object_class()
         return trs_object_class(
-            api_client=self,
-            retrieval_url=url,
-            lazy=True,
-            object_id=object_id
+            api_client=self, retrieval_url=url, lazy=True, object_id=object_id
         )
 
     def _get_many(self, url: str):
@@ -234,8 +247,9 @@ class BaseAPIClient(APIClient):
                 api_client=self,
                 lazy=False,
                 retrieval_url=self.get_retrieve_endpoint(object_id=each["id"]),
-                object_id=each["id"]
-            ) for each in self.get(url)
+                object_id=each["id"],
+            )
+            for each in self.get(url)
         ]
 
     def get_concurrently(self, urls, max_workers=5):
@@ -250,11 +264,11 @@ class BaseAPIClient(APIClient):
                 try:
                     results.append(future.result())
                 except Exception as exc:
-                    print('%r generated an exception: %s' % (url, exc))
+                    print("%r generated an exception: %s" % (url, exc))
 
-        return [self.trs_object_class(
-                data=each,
-                api_client=self,
-                lazy=False,
-                object_id=each["id"]
-            ) for each in results]
+        return [
+            self.trs_object_class(
+                data=each, api_client=self, lazy=False, object_id=each["id"]
+            )
+            for each in results
+        ]

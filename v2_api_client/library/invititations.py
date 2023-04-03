@@ -7,15 +7,14 @@ class InvitationObject(TRSObject):
 
     def create_user_from_invitation(self, password):
         return self.custom_action(
-            "post",
-            "create_user_from_invitation",
-            data={"password": password})
+            "post", "create_user_from_invitation", data={"password": password}
+        )
 
     def process_representative_invitation(self, approved=False):
         return self.custom_action(
             "patch",
             "process_representative_invitation",
-            data={"approved": "yes" if approved is True else "no"}
+            data={"approved": "yes" if approved is True else "no"},
         )
 
 

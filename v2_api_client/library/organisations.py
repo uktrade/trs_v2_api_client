@@ -12,29 +12,17 @@ class OrganisationObject(TRSObject):
                 "organisation_security_group": group_name,
                 "confirmed": confirmed,
             },
-            **kwargs
+            **kwargs,
         )
 
     def find_similar_organisations(self, **kwargs):
-        return self.custom_action(
-            "get",
-            "find_similar_organisations",
-            **kwargs
-        )
+        return self.custom_action("get", "find_similar_organisations", **kwargs)
 
     def has_similar_organisations(self, **kwargs):
-        return self.custom_action(
-            "get",
-            "has_similar_organisations",
-            **kwargs
-        )
+        return self.custom_action("get", "has_similar_organisations", **kwargs)
 
     def organisation_card_data(self, **kwargs):
-        return self.custom_action(
-            "get",
-            "get_organisation_card_data",
-            **kwargs
-        )
+        return self.custom_action("get", "get_organisation_card_data", **kwargs)
 
 
 class OrganisationAPIClient(BaseAPIClient):
@@ -42,15 +30,20 @@ class OrganisationAPIClient(BaseAPIClient):
     trs_object_class = OrganisationObject
 
     def get_organisations_by_company_name(self, company_name, **kwargs):
-        return self._get_many(self.url(
-            f"{self.get_base_endpoint()}/search_by_company_name",
-            params={"company_name": company_name, **kwargs}
-        ))
+        return self._get_many(
+            self.url(
+                f"{self.get_base_endpoint()}/search_by_company_name",
+                params={"company_name": company_name, **kwargs},
+            )
+        )
 
     def get_organisation_cards(self, *args):
-        urls = [self.url(
-            self.get_retrieve_endpoint(object_id, "get_organisation_card_data"),
-        ) for object_id in args]
+        urls = [
+            self.url(
+                self.get_retrieve_endpoint(object_id, "get_organisation_card_data"),
+            )
+            for object_id in args
+        ]
         return self.get_concurrently(urls)
 
 
@@ -61,19 +54,17 @@ class OrganisationCaseRoleAPIClient(BaseAPIClient):
         """Returns the OrganisationCaseRole object (if it exists) that is associated with a
         particular case and organisation object.
         """
-        return self._get_many(self.url(self.get_base_endpoint(), params={
-            "case_id": case_id,
-            "organisation_id": organisation_id
-        }))
+        return self._get_many(
+            self.url(
+                self.get_base_endpoint(),
+                params={"case_id": case_id, "organisation_id": organisation_id},
+            )
+        )
 
 
 class OrganisationMergeRecordObject(TRSObject):
     def get_draft_merged_organisation(self, **kwargs):
-        return self.custom_action(
-            "get",
-            "get_draft_merged_organisation",
-            **kwargs
-        )
+        return self.custom_action("get", "get_draft_merged_organisation", **kwargs)
 
     def get_draft_merged_selections(self, current_duplicate_id=None, **kwargs):
         """Returns what the Organisation would look like if the current merge selection were applied.
@@ -85,33 +76,18 @@ class OrganisationMergeRecordObject(TRSObject):
             params["current_duplicate_id"] = current_duplicate_id
 
         return self.custom_action(
-            "get",
-            "get_draft_merged_selections",
-            params=params,
-            **kwargs
+            "get", "get_draft_merged_selections", params=params, **kwargs
         )
 
     def merge_organisations(self, **kwargs):
-        return self.custom_action(
-            "post",
-            "merge_organisations",
-            **kwargs
-        )
+        return self.custom_action("post", "merge_organisations", **kwargs)
 
     def reset(self, **kwargs):
         """Resets all potential duplicates to their fresh state, pending and all attributes forgotten"""
-        return self.custom_action(
-            "patch",
-            "reset",
-            **kwargs
-        )
+        return self.custom_action("patch", "reset", **kwargs)
 
     def get_duplicate_cases(self, **kwargs):
-        return self.custom_action(
-            "get",
-            "get_duplicate_cases",
-            **kwargs
-        )
+        return self.custom_action("get", "get_duplicate_cases", **kwargs)
 
 
 class OrganisationMergeRecordAPIClient(BaseAPIClient):
@@ -121,6 +97,7 @@ class OrganisationMergeRecordAPIClient(BaseAPIClient):
 
 class DuplicateOrganisationMergeAPIClient(BaseAPIClient):
     base_endpoint = "duplicate_organisation_merges"
+
 
 class OrganisationUserAPIClient(BaseAPIClient):
     base_endpoint = "organisation_users"

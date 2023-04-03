@@ -30,6 +30,7 @@ class TRSObject:
     a TRSObject a retrieval_url instead of actual response data, the object will only contact the
     API when strictly necessary (for example when accessing the DotWiz data).
     """
+
     object_id = None
     encoder = DjangoJSONEncoder
 
@@ -129,12 +130,12 @@ class TRSObject:
         return self._data
 
     def custom_action(
-            self,
-            method: str,
-            action_name: str,
-            data: OptionalDict = None,
-            fields: list = None,
-            params: dict = None,
+        self,
+        method: str,
+        action_name: str,
+        data: OptionalDict = None,
+        fields: list = None,
+        params: dict = None,
     ):
         """
         Constructs and sends a request to a custom action in the API defined by a function
@@ -157,7 +158,7 @@ class TRSObject:
         url = self.api_client.url(
             self.api_client.get_retrieve_endpoint(self.object_id, action_name),
             fields=fields,
-            params=params
+            params=params,
         )
         if method == "GET":
             response = request_method(url)

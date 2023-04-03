@@ -18,10 +18,10 @@ class TestDocumentMetadata:
     @pytest.fixture
     def document(self, request):
         file_types = {
-            'pdf': self.create_pdf_document,
-            'docx': self.create_docx_document,
-            'xlsx': self.create_xlsx_document,
-            'odf': self.create_odf_document
+            "pdf": self.create_pdf_document,
+            "docx": self.create_docx_document,
+            "xlsx": self.create_xlsx_document,
+            "odf": self.create_odf_document,
         }
 
         for file_type in file_types:
@@ -68,8 +68,7 @@ class TestDocumentMetadata:
             fields = [
                 attr
                 for attr in dir(metadata)
-                if isinstance(getattr(metadata, attr), str)
-                and not attr.startswith("_")
+                if isinstance(getattr(metadata, attr), str) and not attr.startswith("_")
             ]
 
             for field in fields:
@@ -83,7 +82,9 @@ class TestDocumentMetadata:
 
         with open(self.xlsx_file, "rb") as file:
             raw_data = file.read()
-            content_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            content_type = (
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
 
             sanitised_data = self.xlsx_document(raw_data, content_type)
             metadata = load_workbook(sanitised_data).properties
@@ -102,12 +103,12 @@ class TestDocumentMetadata:
             assert "Extract Document Metadata" not in getattr(metadata, field)
 
     @pytest.mark.parametrize(
-        'document, content_type',
+        "document, content_type",
         [
             (["odf", "odt"], "application/vnd.oasis.opendocument.text"),
             (["odf", "ods"], "application/vnd.oasis.opendocument.spreadsheet"),
         ],
-        indirect=['document']
+        indirect=["document"],
     )
     def test_extract_odf_metadata(self, document, content_type):
         with zipfile.ZipFile(self.odf_file, "r") as input_odf:
@@ -172,12 +173,16 @@ class TestDocumentMetadata:
         self.xlsx_document = Extractor()
 
     def create_odf_document(self, file_type):
-        odf_filepath = os.path.join(os.path.dirname(__file__), f"fixtures/sample.{file_type}")
-        temporary_file_descriptor, self.odf_file = tempfile.mkstemp(dir=os.path.dirname(odf_filepath))
+        odf_filepath = os.path.join(
+            os.path.dirname(__file__), f"fixtures/sample.{file_type}"
+        )
+        temporary_file_descriptor, self.odf_file = tempfile.mkstemp(
+            dir=os.path.dirname(odf_filepath)
+        )
         os.close(temporary_file_descriptor)
 
         with zipfile.ZipFile(odf_filepath, "r") as input_odf:
-            with zipfile.ZipFile(self.odf_file, 'w') as output_odf:
+            with zipfile.ZipFile(self.odf_file, "w") as output_odf:
                 for file in input_odf.infolist():
                     if file.filename != "meta.xml":
                         output_odf.writestr(file, input_odf.read(file.filename))
