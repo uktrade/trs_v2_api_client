@@ -1,11 +1,9 @@
 import io
 import zipfile
-from abc import abstractmethod, ABC
+from abc import ABC, abstractmethod
 
 import pikepdf
-from docx import Document
 from lxml import etree
-from openpyxl import load_workbook
 
 
 class Extractor:
@@ -15,19 +13,14 @@ class Extractor:
 
         if file_format == "application/pdf":
             return PDFExtractor().extract(data)
+        if file_format in [
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        ]:
+            return MicrosoftDocExtractor().extract(data)
         if (
-            file_format
-            == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-        ):
-            return DOCXExtractor().extract(data)
-        if (
-            file_format
-            == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        ):
-            return XLSXExtractor().extract(data)
-        if (
-            file_format == "application/vnd.oasis.opendocument.text"
-            or file_format == "application/vnd.oasis.opendocument.spreadsheet"
+                file_format == "application/vnd.oasis.opendocument.text"
+                or file_format == "application/vnd.oasis.opendocument.spreadsheet"
         ):
             return ODFExtractor().extract(data)
 
@@ -66,38 +59,17 @@ class ODFExtractor(BaseExtractMetaData):
         return sanitised_data
 
 
-class XLSXExtractor(BaseExtractMetaData):
-    def extract(self, data) -> io.BytesIO:
-        xlsx = load_workbook(data)
-
-        fields = [
-            attr
-            for attr in dir(xlsx.properties)
-            if isinstance(getattr(xlsx.properties, attr), str)
-            and not attr.startswith("_")
-            and not attr == "tagname"
-            and not attr == "namespace"
-        ]
-
-        for field in fields:
-            setattr(xlsx.properties, field, "")
-
-        xlsx.save(data)
-
-        return data
-
-
-class DOCXExtractor(BaseExtractMetaData):
+class MicrosoftDocExtractor(BaseExtractMetaData):
     def extract(self, data) -> io.BytesIO:
         sanitised_data = io.BytesIO()
-        with zipfile.ZipFile(data, "r") as input_doc:
-            with zipfile.ZipFile(sanitised_data, "w") as output_doc:
-                for sub_file in input_doc.infolist():
+        with zipfile.ZipFile(data, "r") as input_file:
+            with zipfile.ZipFile(sanitised_data, "w") as output_file:
+                for sub_file in input_file.infolist():
                     if sub_file.filename != "docProps/core.xml":
-                        output_doc.writestr(sub_file, input_doc.read(sub_file.filename))
+                        output_file.writestr(sub_file, input_file.read(sub_file.filename))
                     else:
                         core_properties = etree.fromstring(
-                            input_doc.read(sub_file.filename)
+                            input_file.read(sub_file.filename)
                         )
                         potentially_sensitive_fields = [
                             child
@@ -106,19 +78,19 @@ class DOCXExtractor(BaseExtractMetaData):
                                 [
                                     field in child.tag
                                     for field in [
-                                        "creator",
-                                        "comments",
-                                        "lastModifiedBy",
-                                        "manager",
-                                        "identifier",
-                                    ]
+                                    "creator",
+                                    "comments",
+                                    "lastModifiedBy",
+                                    "manager",
+                                    "identifier",
+                                ]
                                 ]
                             )
                         ]
                         for field in potentially_sensitive_fields:
                             field.text = ""
                         sanitised_core_properties = etree.tostring(core_properties)
-                        output_doc.writestr(
+                        output_file.writestr(
                             sub_file.filename, sanitised_core_properties
                         )
         return sanitised_data
