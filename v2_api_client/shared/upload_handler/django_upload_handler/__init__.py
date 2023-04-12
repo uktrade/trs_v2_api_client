@@ -3,6 +3,7 @@ from django.core.files.uploadhandler import FileUploadHandler, StopUpload
 
 from v2_api_client.shared.upload_handler.metadata import Extractor
 
+
 class ExtractMetadataFileUploadHandler(FileUploadHandler):
     def file_complete(self, file_size):
         pass
