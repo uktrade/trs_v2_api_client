@@ -13,17 +13,19 @@ class Extractor:
 
         if file_format == "application/pdf":
             return PDFExtractor().extract(data)
-        if file_format in [
+        elif file_format in [
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         ]:
             return MicrosoftDocExtractor().extract(data)
-        if (
+        elif (
                 file_format == "application/vnd.oasis.opendocument.text"
                 or file_format == "application/vnd.oasis.opendocument.spreadsheet"
         ):
             return ODFExtractor().extract(data)
-
+        else:
+            # mimetype is not supported
+            pass
         return data
 
 
@@ -103,14 +105,16 @@ class PDFExtractor(BaseExtractMetaData):
         try:
             del pdf.Root.Metadata
         except KeyError:
-            print("No XMP metadata.")
-
+            pass
         try:
             del pdf.docinfo
-        except AttributeError:
-            print("No docinfo metadata.")
+        except KeyError:
+            pass
 
-        pdf.save(data)
+        # saving the stripped PDF
+        new_stripped = io.BytesIO()
+        pdf.save(new_stripped)
         pdf.close()
 
-        return data
+        new_stripped.seek(0)
+        return new_stripped
