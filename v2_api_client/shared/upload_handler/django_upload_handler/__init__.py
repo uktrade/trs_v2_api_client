@@ -8,6 +8,7 @@ FILE_MAX_SIZE_BYTES_ERROR = (
     f"{round(settings.FILE_MAX_SIZE_BYTES / (1024 * 1024))}MB"
 )
 
+
 class ExtractMetadataFileUploadHandler(FileUploadHandler):
     def file_complete(self, file_size):
         pass
@@ -17,6 +18,9 @@ class ExtractMetadataFileUploadHandler(FileUploadHandler):
             raise StopUpload(FILE_MAX_SIZE_BYTES_ERROR)
 
         extractor = Extractor()
-        sanitised_data = extractor(raw_data, self.content_type)
+        _, sanitised_data = extractor(raw_data, self.content_type)
 
-        return sanitised_data.getvalue()
+        if isinstance(sanitised_data, bytes):
+            return sanitised_data
+        else:
+            return sanitised_data.getvalue()
