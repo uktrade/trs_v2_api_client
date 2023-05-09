@@ -27,7 +27,7 @@ class Extractor:
             "application/vnd.oasis.opendocument.text",
             "application/vnd.oasis.opendocument.spreadsheet",
         ):
-            data = ODFExtractor().extract(data)
+            data = OpenDocumentExtractor().extract(data)
         elif file_format == "application/zip":
             data = ZIPExtractor().extract(data)
         else:
@@ -58,16 +58,21 @@ class ZIPExtractor(BaseExtractMetaData):
                         if os.path.isfile(os.path.join(tmpdirname, f))
                     ]
                     for file in extracted_files:
-                        with open(os.path.join(tmpdirname, file), "rb") as file_bytes:
-                            if mimetype := mimetypes.guess_type(file)[0]:
+                        input_file_path = os.path.join(tmpdirname, file)
+                        output_file_path = os.path.join(output_tmpdirname, file)
+                        if mimetype := mimetypes.guess_type(file)[0]:
+                            with open(input_file_path, "rb") as file_bytes:
                                 _, stripped_bytes = extractor(
                                     file_bytes.read(), mimetype
                                 )
-                                with open(
-                                    os.path.join(output_tmpdirname, file), "wb"
-                                ) as f:
+                                with open(output_file_path, "wb") as f:
                                     f.write(stripped_bytes.read())
+                        else:
+                            # the mimetype cannot be determined, so we just copy the file
+                            shutil.copyfile(input_file_path, output_file_path)
 
+                    # checking that the new zip file contains the same number of files as the
+                    # original zip file
                     assert len(extracted_files) == len(os.listdir(output_tmpdirname))
                     stripped_zip_path = shutil.make_archive(
                         os.path.join(tmpdirname, "stripped"), "zip", output_tmpdirname
@@ -79,7 +84,7 @@ class ZIPExtractor(BaseExtractMetaData):
         return stripped_zip_bytes
 
 
-class ODFExtractor(BaseExtractMetaData):
+class OpenDocumentExtractor(BaseExtractMetaData):
     def extract(self, data):
         sanitised_data = io.BytesIO()
         tags = ["creator", "title", "description", "subject"]
@@ -102,6 +107,7 @@ class ODFExtractor(BaseExtractMetaData):
         with zipfile.ZipFile(sanitised_data, "a", zipfile.ZIP_DEFLATED) as zf:
             zf.writestr("meta.xml", metadata)
 
+        sanitised_data.seek(0)
         return sanitised_data
 
 
@@ -141,6 +147,8 @@ class MicrosoftDocExtractor(BaseExtractMetaData):
                         output_file.writestr(
                             sub_file.filename, sanitised_core_properties
                         )
+
+        sanitised_data.seek(0)
         return sanitised_data
 
 
