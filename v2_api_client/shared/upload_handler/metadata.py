@@ -27,7 +27,7 @@ class Extractor:
             "application/vnd.oasis.opendocument.text",
             "application/vnd.oasis.opendocument.spreadsheet",
         ):
-            data = OpenOfficeExtractor().extract(data)
+            data = OpenDocumentExtractor().extract(data)
         elif file_format == "application/zip":
             data = ZIPExtractor().extract(data)
         else:
@@ -84,7 +84,7 @@ class ZIPExtractor(BaseExtractMetaData):
         return stripped_zip_bytes
 
 
-class OpenOfficeExtractor(BaseExtractMetaData):
+class OpenDocumentExtractor(BaseExtractMetaData):
     def extract(self, data):
         sanitised_data = io.BytesIO()
         tags = ["creator", "title", "description", "subject"]
