@@ -1,5 +1,9 @@
 import io
+import mimetypes
+import os
+import tempfile
 import zipfile
+import shutil
 from abc import ABC, abstractmethod
 
 import pikepdf
@@ -10,29 +14,69 @@ class Extractor:
     def __call__(self, raw_data, content_type):
         data = io.BytesIO(raw_data)
         file_format = content_type
+        was_stripped = True
 
         if file_format == "application/pdf":
-            return PDFExtractor().extract(data)
-        elif file_format in [
+            data = PDFExtractor().extract(data)
+        elif file_format in (
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        ]:
-            return MicrosoftDocExtractor().extract(data)
-        elif (
-                file_format == "application/vnd.oasis.opendocument.text"
-                or file_format == "application/vnd.oasis.opendocument.spreadsheet"
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         ):
-            return ODFExtractor().extract(data)
+            data = MicrosoftDocExtractor().extract(data)
+        elif file_format in (
+            "application/vnd.oasis.opendocument.text",
+            "application/vnd.oasis.opendocument.spreadsheet",
+        ):
+            data = ODFExtractor().extract(data)
+        elif file_format == "application/zip":
+            data = ZIPExtractor().extract(data)
         else:
             # mimetype is not supported
-            pass
-        return data
+            was_stripped = False
+
+        return was_stripped, data
+
+
+extractor = Extractor()
 
 
 class BaseExtractMetaData(ABC):
     @abstractmethod
     def extract(self, data) -> io.BytesIO:
         raise NotImplementedError()
+
+
+class ZIPExtractor(BaseExtractMetaData):
+    def extract(self, data):
+        with zipfile.ZipFile(data, "r") as input_zip:
+            with tempfile.TemporaryDirectory() as tmpdirname:
+                with tempfile.TemporaryDirectory() as output_tmpdirname:
+                    input_zip.extractall(tmpdirname)
+                    extracted_files = [
+                        f
+                        for f in os.listdir(tmpdirname)
+                        if os.path.isfile(os.path.join(tmpdirname, f))
+                    ]
+                    for file in extracted_files:
+                        with open(os.path.join(tmpdirname, file), "rb") as file_bytes:
+                            if mimetype := mimetypes.guess_type(file)[0]:
+                                _, stripped_bytes = extractor(
+                                    file_bytes.read(), mimetype
+                                )
+                                with open(
+                                    os.path.join(output_tmpdirname, file), "wb"
+                                ) as f:
+                                    f.write(stripped_bytes.read())
+
+                    assert len(extracted_files) == len(os.listdir(output_tmpdirname))
+                    stripped_zip_path = shutil.make_archive(
+                        os.path.join(tmpdirname, "stripped"), "zip", output_tmpdirname
+                    )
+                    stripped_zip_file = open(stripped_zip_path, "rb")
+                    stripped_zip_bytes = stripped_zip_file.read()
+                    stripped_zip_file.close()
+
+        return stripped_zip_bytes
 
 
 class ODFExtractor(BaseExtractMetaData):
@@ -68,7 +112,9 @@ class MicrosoftDocExtractor(BaseExtractMetaData):
             with zipfile.ZipFile(sanitised_data, "w") as output_file:
                 for sub_file in input_file.infolist():
                     if sub_file.filename != "docProps/core.xml":
-                        output_file.writestr(sub_file, input_file.read(sub_file.filename))
+                        output_file.writestr(
+                            sub_file, input_file.read(sub_file.filename)
+                        )
                     else:
                         core_properties = etree.fromstring(
                             input_file.read(sub_file.filename)
@@ -80,12 +126,12 @@ class MicrosoftDocExtractor(BaseExtractMetaData):
                                 [
                                     field in child.tag
                                     for field in [
-                                    "creator",
-                                    "comments",
-                                    "lastModifiedBy",
-                                    "manager",
-                                    "identifier",
-                                ]
+                                        "creator",
+                                        "comments",
+                                        "lastModifiedBy",
+                                        "manager",
+                                        "identifier",
+                                    ]
                                 ]
                             )
                         ]
