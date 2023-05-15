@@ -4,8 +4,9 @@ import os
 import tempfile
 import zipfile
 import shutil
+import glob
 from abc import ABC, abstractmethod
-
+from pathlib import Path
 import pikepdf
 from lxml import etree
 
@@ -52,15 +53,15 @@ class ZIPExtractor(BaseExtractMetaData):
             with tempfile.TemporaryDirectory() as tmpdirname:
                 with tempfile.TemporaryDirectory() as output_tmpdirname:
                     input_zip.extractall(tmpdirname)
-                    extracted_files = [
-                        f
-                        for f in os.listdir(tmpdirname)
-                        if os.path.isfile(os.path.join(tmpdirname, f))
-                    ]
-                    for file in extracted_files:
-                        input_file_path = os.path.join(tmpdirname, file)
-                        output_file_path = os.path.join(output_tmpdirname, file)
-                        if mimetype := mimetypes.guess_type(file)[0]:
+                    tmpdirname += "/**"
+                    file_length_counter = 0
+                    for input_file_path in glob.glob(tmpdirname, recursive=True):
+                        if not os.path.isfile(input_file_path):
+                            continue
+                        file_length_counter += 1
+                        file_name = Path(input_file_path).name
+                        output_file_path = os.path.join(output_tmpdirname, file_name)
+                        if mimetype := mimetypes.guess_type(file_name)[0]:
                             with open(input_file_path, "rb") as file_bytes:
                                 _, stripped_bytes = extractor(
                                     file_bytes.read(), mimetype
@@ -73,7 +74,7 @@ class ZIPExtractor(BaseExtractMetaData):
 
                     # checking that the new zip file contains the same number of files as the
                     # original zip file
-                    assert len(extracted_files) == len(os.listdir(output_tmpdirname))
+                    assert file_length_counter == len(os.listdir(output_tmpdirname))
                     stripped_zip_path = shutil.make_archive(
                         os.path.join(tmpdirname, "stripped"), "zip", output_tmpdirname
                     )
