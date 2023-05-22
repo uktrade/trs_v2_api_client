@@ -17,11 +17,18 @@ class Extractor:
         file_format = content_type
         was_stripped = True
 
+        print(file_format)
+
         if file_format == "application/pdf":
             data = PDFExtractor().extract(data)
         elif file_format in (
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/msword",
+            "application/vnd.ms-excel",
+            "application/vnd.ms-excel.sheet.macroenabled.12",
+            "application/vnd.ms-excel.sheet.binary.macroenabled.12",
+            "application/vnd.ms-word.document.macroenabled.12",
         ):
             data = MicrosoftDocExtractor().extract(data)
         elif file_format in (
