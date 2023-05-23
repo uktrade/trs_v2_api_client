@@ -29,7 +29,7 @@ setup(
         "dotwiz",
         "python-dateutil",
         "phonenumbers",
-        "pikepdf==7.2.0",
+        "pikepdf",
         "openpyxl",
         "lxml",
     ],
