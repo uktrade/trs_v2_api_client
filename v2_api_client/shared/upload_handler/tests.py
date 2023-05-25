@@ -180,11 +180,8 @@ class TestDocumentMetadata:
             shutil.copy(self.pdf_file, os.path.join(tmpdirname, "fixture.pdf"))
             shutil.copy(self.xlsx_file, os.path.join(tmpdirname, "fixture.xlsx"))
             self.zip_file = shutil.make_archive(
-                os.path.join(os.path.dirname(__file__), "fixture"),
-                "zip",
-                tmpdirname
+                os.path.join(os.path.dirname(__file__), "fixture"), "zip", tmpdirname
             )
-
 
     def create_odf_document(self, file_type):
         odf_filepath = os.path.join(
