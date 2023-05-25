@@ -29,7 +29,6 @@ setup(
         "dotwiz",
         "python-dateutil",
         "phonenumbers",
-        "pikepdf",
         "openpyxl",
         "lxml",
         "django-log-formatter-ecs",
