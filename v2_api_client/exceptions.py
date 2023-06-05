@@ -28,3 +28,9 @@ class InvalidSerializerError(ClientError):
                     error_text += f"{field} ---- {error}\n"
 
         return error_text
+
+
+class RateLimitedError(ClientError):
+    """A 429 rate-limit was returned from the API."""
+
+    status_code = 429

@@ -4,7 +4,7 @@ from apiclient import exceptions
 from apiclient.error_handlers import BaseErrorHandler
 from apiclient.response import Response
 
-from v2_api_client.exceptions import InvalidSerializerError, NotFoundError
+from v2_api_client.exceptions import InvalidSerializerError, NotFoundError, RateLimitedError
 
 
 class APIErrorHandler(BaseErrorHandler):
@@ -19,7 +19,11 @@ class APIErrorHandler(BaseErrorHandler):
                 message=f"The endpoint {response.url} could not be found"
             )
 
-        if response.status_code == 400:
+        elif response.status_code == 429:
+            # The user has been ratelimited
+            return RateLimitedError()
+
+        elif response.status_code == 400:
             # 400 Bad request error, probably an invalid serializer, let's try and extract the
             # errors to make it easier to debug, if not, carry on as normal.
             try:
