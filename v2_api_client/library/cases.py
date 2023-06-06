@@ -11,6 +11,8 @@ class CaseObject(TRSObject):
     def get_submissions(self, params):
         return self.custom_action("get", "get_submissions", params=params)
 
+    def get_status(self):
+        return self.custom_action("get", "get_status")
 
 class CasesAPIClient(BaseAPIClient):
     base_endpoint = "cases"
