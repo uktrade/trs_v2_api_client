@@ -28,3 +28,4 @@ lxml==4.9.2
 pytest==7.2.2
 django-log-formatter-ecs==0.0.5
 django-environ==0.4.5
+pikepdf==7.2.0

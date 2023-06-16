@@ -32,5 +32,6 @@ setup(
         "openpyxl",
         "lxml",
         "django-log-formatter-ecs",
+        "pikepdf",
     ],
 )

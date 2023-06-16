@@ -14,6 +14,12 @@ class CaseObject(TRSObject):
     def get_status(self):
         return self.custom_action("get", "get_status")
 
+    def get_applicant(self):
+        return self.custom_action("get", "get_applicant")
+
+    def get_public_file(self):
+        return self.custom_action("get", "get_public_file")
+
 class CasesAPIClient(BaseAPIClient):
     base_endpoint = "cases"
     trs_object_class = CaseObject
