@@ -94,6 +94,15 @@ class OrganisationMergeRecordAPIClient(BaseAPIClient):
     base_endpoint = "organisation_merge_records"
     trs_object_class = OrganisationMergeRecordObject
 
+    def adhoc_merge(self, organisation_1_id, organisation_2_id):
+        return self._get(
+            self.url(
+                self.get_base_endpoint() + "/adhoc_merge",
+                params={"organisation_1_id": organisation_1_id,
+                        "organisation_2_id": organisation_2_id},
+            )
+        )
+
 
 class DuplicateOrganisationMergeAPIClient(BaseAPIClient):
     base_endpoint = "duplicate_organisation_merges"
