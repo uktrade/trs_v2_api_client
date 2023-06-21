@@ -1,3 +1,5 @@
+from zipfile import BadZipFile
+
 from django.conf import settings
 from django.core.files.uploadhandler import FileUploadHandler, StopUpload
 
@@ -18,7 +20,11 @@ class ExtractMetadataFileUploadHandler(FileUploadHandler):
             raise StopUpload(FILE_MAX_SIZE_BYTES_ERROR)
 
         extractor = Extractor()
-        _, sanitised_data = extractor(raw_data, self.content_type)
+        try:
+            _, sanitised_data = extractor(raw_data, self.content_type)
+        except BadZipFile:
+            raise StopUpload("There was an error processing this file")
+
 
         if isinstance(sanitised_data, bytes):
             return sanitised_data
