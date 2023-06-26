@@ -2,6 +2,7 @@ from zipfile import BadZipFile
 
 from django.conf import settings
 from django.core.files.uploadhandler import FileUploadHandler, StopUpload
+from pikepdf import PdfError
 
 from v2_api_client.shared.upload_handler.metadata import Extractor
 
@@ -22,7 +23,7 @@ class ExtractMetadataFileUploadHandler(FileUploadHandler):
         extractor = Extractor()
         try:
             _, sanitised_data = extractor(raw_data, self.content_type)
-        except BadZipFile:
+        except (BadZipFile, PdfError):
             raise StopUpload("There was an error processing this file")
 
 
