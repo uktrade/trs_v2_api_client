@@ -160,7 +160,7 @@ class TRSObject:
             fields=fields,
             params=params,
         )
-        if method == "GET":
+        if method in ["GET", "get"]:
             response = request_method(url)
         else:
             if not data:
