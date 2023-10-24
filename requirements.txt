@@ -18,7 +18,7 @@ sqlparse==0.4.4
 stevedore==3.5.0
 tenacity==8.0.1
 tomli==2.0.1
-urllib3==1.26.17
+urllib3==1.26.18
 virtualenv-clone==0.5.7
 virtualenv==20.14.1
 virtualenvwrapper==4.8.4
