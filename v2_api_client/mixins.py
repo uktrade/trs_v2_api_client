@@ -22,4 +22,6 @@ class APIClientMixin:
         """
         if hasattr(self.request, "user") and self.request.user.is_authenticated:
             kwargs.setdefault("token", self.request.user.token)
+        else:
+            kwargs.setdefault("token", settings.HEALTH_CHECK_TOKEN)
         return TRSAPIClient(*args, **kwargs)
