@@ -6,7 +6,7 @@ class DocumentsAPIClient(BaseAPIClient):
 
     def get_presigned_url(self, filename):
         return self.post(
-            self.url("documents"),
+            self.url("documents/s3-presigned-url"),
             data={"filename": filename},
         )
 
